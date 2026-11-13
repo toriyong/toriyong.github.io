@@ -585,6 +585,25 @@ textarea.note { width: 100%; box-sizing: border-box; font: inherit; line-height:
 .star:hover { color: #f0a92e; }
 .sr-item.fav .sr-name { font-weight: 600; }
 
+/* 증시 > 주요 지수 카드 */
+.idx-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.idx-tab { padding: 5px 13px; font: inherit; font-size: 13.5px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+.idx-tab.on { color: var(--accent); border-color: var(--accent); font-weight: 600; background: var(--accent-soft); }
+.idx-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.idx-card { min-width: 0; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; }
+.idx-name { font-size: 13px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.idx-value { font-size: 19px; font-weight: 600; letter-spacing: -.01em; }
+.idx-diff { font-size: 12.5px; margin-bottom: 6px; }
+.idx-diff.flat { color: var(--muted); }
+.idx-date { font-size: 11px; margin-top: 2px; }
+svg.spark { display: block; width: 100%; height: 32px; }
+svg.spark polyline { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+svg.spark.up polyline { stroke: #d6336c; }
+svg.spark.down polyline { stroke: #2f6fde; }
+svg.spark.flat polyline { stroke: var(--muted); }
+:root[data-theme="dark"] svg.spark.up polyline { stroke: #ff6b8b; }
+:root[data-theme="dark"] svg.spark.down polyline { stroke: #6ea0ff; }
+
 /* 소개(포트폴리오) */
 .pf-head { margin-bottom: 20px; }
 .pf-headline { margin: 2px 0 10px; font-size: 16px; color: var(--accent); font-weight: 600; }

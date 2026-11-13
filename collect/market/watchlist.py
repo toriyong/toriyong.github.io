@@ -179,8 +179,12 @@ def target_summary(targets: list[dict], price: int | None) -> dict:
         p = to_int(t.get("price"))
         if not p:
             continue
+        # 자동 추출은 자릿수를 잘못 읽는 일이 있다. 현재가와 지나치게 동떨어진 값은 버린다.
+        if price and not (price * 0.3 <= p <= price * 3):
+            continue
         d = str(t.get("date") or "")[:10]
         rows.append({"broker": t.get("broker"), "price": p, "date": d or None,
+                     "url": t.get("url"),
                      "attain": round(price / p * 100, 1) if price else None})
     rows.sort(key=lambda r: r["date"] or "", reverse=True)
     # 컨센서스 평균: 최근 TARGET_DAYS 일 안의 값만, 증권사별로 최신 1건만 반영한다.
@@ -206,6 +210,7 @@ def main() -> int:
     ap.add_argument("--config", default="config/watchlist.yml")
     ap.add_argument("--out", default="site/market/data/watchlist.json")
     ap.add_argument("--prev")
+    ap.add_argument("--targets", help="research.py 가 모은 목표가 JSON(있으면 yml 값과 합침)")
     args = ap.parse_args()
 
     with open(args.config, encoding="utf-8") as fp:
@@ -217,6 +222,14 @@ def main() -> int:
                 prev = {s.get("stock_code"): s for s in json.load(fp).get("stocks", [])}
         except (OSError, ValueError):
             prev = {}
+
+    auto_targets = {}
+    if args.targets and os.path.exists(args.targets):
+        try:
+            with open(args.targets, encoding="utf-8") as fp:
+                auto_targets = (json.load(fp) or {}).get("targets") or {}
+        except (OSError, ValueError):
+            auto_targets = {}
 
     dart_key = os.environ.get("DART_API_KEY", "").strip()
     price_key = os.environ.get("DATA_GO_KR_KEY", "").strip()
@@ -237,6 +250,15 @@ def main() -> int:
         name = st.get("name") or code
         old = prev.get(code) or {}
         row = {"name": name, "stock_code": code, "corp_code": codes.get(code)}
+        # 리포트에서 모은 목표가 + yml 에 직접 적은 값 (증권사·날짜가 같으면 한 건으로)
+        merged, seen = [], set()
+        for t in (auto_targets.get(code) or []) + (st.get("targets") or []):
+            k = ((t.get("broker") or "").strip(), str(t.get("date") or "")[:10])
+            if k in seen:
+                continue
+            seen.add(k)
+            merged.append(t)
+        st = {**st, "targets": merged}
         try:
             row["price"] = last_price(s, price_key, code) if price_key else None
         except (requests.RequestException, RuntimeError) as e:
