@@ -29,13 +29,16 @@
         h("span", { class: "sub-line", text: s.stock_code })]),
       h("td", { class: "num", "data-label": "현재가" }, [fmt.num(p.price),
         p.change_pct !== undefined && p.change_pct !== null ? h("span", { class: "sub-line" }, pctSpan(p.change_pct, true)) : null]),
-      h("td", { class: "num", "data-label": "평균 목표가", text: fmt.num(s.avg_target) }),
+      h("td", { class: "num", "data-label": "평균 목표가" }, [fmt.num(s.avg_target),
+        s.target_brokers ? h("span", { class: "sub-line meta", text: `${s.target_brokers}개사${s.target_min !== s.target_max ? ` · ${fmt.num(s.target_min)}~${fmt.num(s.target_max)}` : ""}` }) : null]),
       h("td", { class: "num", "data-label": "도달률" }, s.attain === null || s.attain === undefined
         ? h("span", { class: "meta", text: s.avg_target ? "현재가 필요" : "목표가 미입력" })
         : h("span", { class: "attain" }, [h("span", { class: "attain-track" }, h("span", { class: "attain-bar", "data-w": Math.min(100, s.attain) })), `${fmt.num(s.attain, 1)}%`])),
       h("td", { class: "num", "data-label": "상승 여력" }, pctSpan(s.upside, true)),
       h("td", { "data-label": "목표가" }, (s.targets || []).length
-        ? h("ul", { class: "plain" }, s.targets.slice(0, 4).map(t => h("li", { text: `${t.broker || "–"} ${fmt.num(t.price)}원 · ${fmt.md(t.date)}` })))
+        ? h("ul", { class: "plain" }, s.targets.slice(0, 5).map(t => h("li", { class: t.used === false ? "meta" : null,
+            title: t.used === false ? "같은 증권사의 더 최근 리포트가 있어 평균에서 제외" : "평균에 반영",
+            text: `${t.broker || "–"} ${fmt.num(t.price)}원 · ${fmt.md(t.date)}${t.used === false ? " (이전)" : ""}` })))
         : h("a", { class: "meta", href: `https://github.com/toriyong/toriyong.github.io/issues/new?template=watchlist.yml&action=${encodeURIComponent("목표가 추가")}&name=${encodeURIComponent(s.name)}&code=${s.stock_code}`, target: "_blank", rel: "noopener noreferrer", text: "목표가 입력 ↗" })),
     ]);
   }) : [h("tr", null, h("td", { colspan: 6, class: "empty", text: "관심종목 없음" }))]));
