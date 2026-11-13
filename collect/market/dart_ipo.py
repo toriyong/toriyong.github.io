@@ -144,10 +144,15 @@ def latest_ipo_filings(rows: list[dict]) -> list[dict]:
     [발행조건확정] 신고서가 있으면 그 접수번호를 confirm_rcept_no 로 함께 기록(수요예측 결과가 들어 있음)."""
     latest: dict[str, dict] = {}
     confirm: dict[str, str] = {}
+    withdrawn: dict[str, str] = {}          # 회사별 가장 최근 철회신고서 접수번호
     for r in rows:
         if r.get("corp_cls") != "E":
             continue
         name = r.get("report_nm") or ""
+        if "철회" in name and r.get("corp_code"):
+            if r.get("rcept_no", "") > withdrawn.get(r["corp_code"], ""):
+                withdrawn[r["corp_code"]] = r.get("rcept_no", "")
+            continue
         if "증권신고서" not in name:
             continue
         code = r.get("corp_code")
@@ -158,8 +163,15 @@ def latest_ipo_filings(rows: list[dict]) -> list[dict]:
         if "발행조건확정" in name and r.get("rcept_no", "") > confirm.get(code, ""):
             confirm[code] = r["rcept_no"]
     out = []
+    dropped = []
     for code, r in latest.items():
+        # 철회: 최신 신고서 뒤에 철회신고서가 있거나, 목록 비고(rm)에 '철'(철회된 문서) 표시
+        if withdrawn.get(code, "") > r.get("rcept_no", "") or "철" in str(r.get("rm") or ""):
+            dropped.append(r.get("corp_name", code))
+            continue
         out.append({**r, "confirm_rcept_no": confirm.get(code)})
+    if dropped:
+        log(f"철회된 공모 {len(dropped)}건 제외: {', '.join(dropped)}")
     return out
 
 
