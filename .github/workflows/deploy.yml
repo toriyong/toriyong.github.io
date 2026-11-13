@@ -122,6 +122,11 @@ jobs:
           STUDY_PLAN: ${{ secrets.STUDY_PLAN }}
         run: python tools/build_study.py --out site/study/data.json
 
+      - name: Build portfolio (소개)
+        env:
+          STUDY_PLAN: ${{ secrets.STUDY_PLAN }}
+        run: python tools/build_portfolio.py --out site/about/data.json
+
       # 브라우저·CDN 캐시 때문에 새 JS와 옛 CSS가 섞여 보이지 않도록 정적 파일 주소에 버전(커밋) 붙이기
       - name: Cache-bust assets
         run: |
