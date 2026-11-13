@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>증시 · 공모주 · toriyong</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../" data-tab="market">
+  <main>
+    <div class="wrap">
+      <h1>증시 · 공모주</h1>
+      <p class="lead">공모주 청약 일정과 대응 구간 등급. 등급은 공개된 기준으로 코드가 자동 산정합니다.</p>
+
+      <div id="banner-sample" class="banner info hidden">예시 데이터입니다. 실제 공시 데이터가 수집되면 자동으로 바뀝니다.</div>
+      <div id="banner-stale" class="banner warn hidden"></div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>요약</h2>
+          <span class="meta" id="updated">기준 시각 –</span>
+        </div>
+        <div class="chips" id="summary"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>청약 · 상장 캘린더</h2>
+          <div class="cal-nav">
+            <button type="button" id="cal-prev" aria-label="이전 달">‹</button>
+            <span class="cal-title" id="cal-title"></span>
+            <button type="button" id="cal-next" aria-label="다음 달">›</button>
+            <button type="button" id="cal-today">오늘</button>
+          </div>
+        </div>
+        <div class="cal" id="calendar"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>공모주 목록</h2>
+          <div class="filters" id="filters"></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>종목</th>
+                <th>상태</th>
+                <th>청약일</th>
+                <th class="num">공모가(원)</th>
+                <th>주관사</th>
+                <th class="num">경쟁률</th>
+                <th class="num">확약률</th>
+                <th class="num">유통물량</th>
+                <th>등급</th>
+                <th>공시</th>
+              </tr>
+            </thead>
+            <tbody id="ipo-rows"></tbody>
+          </table>
+        </div>
+        <p class="meta">경쟁률·확약률·유통물량은 수요예측 결과 공시 후 운영자가 입력합니다. 값이 없으면 '판정 보류'로 표시됩니다.</p>
+      </section>
+
+      <section class="panel">
+        <h2>등급 기준</h2>
+        <ul class="legend" id="legend"></ul>
+      </section>
+
+      <section class="panel soon">
+        <h2>준비 중</h2>
+        <ul>
+          <li>최근 상장 공모주 성적표 (시가 · 종가 · D+1 · D+5 · D+30 수익률)</li>
+          <li>섹터 주목도 · 락업 해제 캘린더</li>
+          <li>관심 종목 (증권사 목표가 도달률 · 최근 뉴스 · 공시)</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+  <script src="../assets/common.js"></script>
+  <script src="ipo.js"></script>
+</body>
+</html>

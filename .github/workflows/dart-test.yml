@@ -1,0 +1,21 @@
+name: DART key test
+
+on:
+  workflow_dispatch: {}        # 수동 실행 전용 (Actions 탭 → Run workflow)
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call DART list API
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          if [ -z "$DART_API_KEY" ]; then echo "DART_API_KEY secret이 없습니다"; exit 1; fi
+          TODAY=$(TZ=Asia/Seoul date +%Y%m%d)
+          # 키는 출력하지 않음 (로그에서도 *** 로 가려짐)
+          curl -s "https://opendart.fss.or.kr/api/list.json?crtfc_key=${DART_API_KEY}&bgn_de=${TODAY}&end_de=${TODAY}&page_count=3" \
+            | jq '{status, message, total_count, sample: [.list[]?.report_nm]}'

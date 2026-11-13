@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions   # 워크플로의 Action 버전 업데이트
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip              # requirements.txt 업데이트
+    directory: /
+    schedule:
+      interval: weekly
