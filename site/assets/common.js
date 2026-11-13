@@ -8,8 +8,7 @@
 
   const TABS = [
     { id: "home", label: "홈", href: "" },
-    { id: "security", label: "보안", href: "security/" },
-    { id: "infra", label: "인프라", href: "infra/" },
+    { id: "security", label: "보안·인프라", href: "security/" },
     { id: "market", label: "증시", href: "market/" },
   ];
 
@@ -91,7 +90,7 @@
   function renderFooter() {
     const footer = h("footer", { class: "site-footer" }, h("div", { class: "wrap" }, [
       h("p", { text: "이 사이트는 공개 데이터를 정리해 보여 주는 정보 사이트이며, 투자 권유나 매매 추천을 하지 않습니다. 투자 판단과 책임은 본인에게 있습니다." }),
-      h("p", { text: "데이터 출처: 금융감독원 OpenDART. 수치는 공시 기준이며 원문과 다를 수 있으니 반드시 원문 공시를 확인하세요." }),
+      h("p", { text: "데이터 출처: 금융감독원 OpenDART, CISA KEV, endoflife.date, 각 언론사·기관 RSS(제목과 링크만 표시). 원문을 반드시 확인하세요." }),
     ]));
     body.append(footer);
   }

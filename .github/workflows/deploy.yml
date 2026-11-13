@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "0 22 * * *"      # 매일 07:00 KST
+    - cron: "0 22 * * *"      # 매일 07:00 KST (아침 브리핑 시간)
     - cron: "30 7 * * 1-5"    # 평일 16:30 KST (장 마감 후)
+    - cron: "0 1,4,10,13 * * *"  # 10:00 · 13:00 · 19:00 · 22:00 KST (보안 뉴스 갱신)
   workflow_dispatch: {}
 
 permissions:
@@ -38,8 +39,9 @@ jobs:
       # 수집 실패 시 화면이 비지 않도록, 현재 배포된 원천 데이터를 먼저 받아 둔다
       - name: Fetch previous data
         run: |
-          curl -fsS "${{ steps.pages.outputs.base_url }}/market/data/raw_ipo.json" -o /tmp/prev_raw_ipo.json \
-            && echo "previous data found" || echo "no previous data"
+          base="${{ steps.pages.outputs.base_url }}"
+          curl -fsS "$base/market/data/raw_ipo.json" -o /tmp/prev_raw_ipo.json && echo "prev ipo ok" || echo "no prev ipo"
+          curl -fsS "$base/security/data/secinfra.json" -o /tmp/prev_secinfra.json && echo "prev secinfra ok" || echo "no prev secinfra"
 
       - name: Collect IPO filings (DART)
         env:
@@ -54,6 +56,13 @@ jobs:
           python process/market/grade_ipo.py \
             --raw site/market/data/raw_ipo.json \
             --out site/market/data/ipo.json
+
+      # 보안·인프라: 출처별로 독립 수집, 실패한 출처는 건너뛰고 직전 데이터 유지
+      - name: Collect security & infra
+        run: |
+          python collect/secinfra/collect.py \
+            --out site/security/data/secinfra.json \
+            --prev /tmp/prev_secinfra.json
 
       - uses: actions/upload-pages-artifact@v3
         with:

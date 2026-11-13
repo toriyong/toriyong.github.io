@@ -88,6 +88,22 @@
       }, [h("div", { class: "cal-date", text: d.getUTCDate() }), ...evs]));
     }
     $("calendar").replaceChildren(...cells);
+
+    // 모바일용 날짜별 목록(아젠다): 이번 달에 일정이 있는 날만
+    const DOW = ["일", "월", "화", "수", "목", "금", "토"];
+    const prefix = `${cy}-${String(cm).padStart(2, "0")}`;
+    const days = Object.keys(events).filter(k => k.startsWith(prefix)).sort();
+    $("agenda").replaceChildren(...(days.length ? days.map(k => {
+      const d = new Date(k + "T00:00:00Z");
+      return h("li", { class: "agenda-day" + (k === today ? " today" : "") }, [
+        h("div", { class: "agenda-date" }, [h("strong", { text: d.getUTCDate() }), h("span", { text: DOW[d.getUTCDay()] })]),
+        h("div", { class: "agenda-evs" }, events[k].map(({ kind, item }) =>
+          h("a", { class: `ev ${kind}`, href: "#row-" + item.corp_code }, [
+            h("span", { class: "ev-kind", text: kind === "sub" ? "청약" : "상장" }), item.corp_name,
+            item.grade && item.grade !== "spac" ? h("span", { class: `badge g-${item.grade} ev-badge`, text: GRADE[item.grade] }) : null,
+          ]))),
+      ]);
+    }) : [h("li", { class: "empty", text: "이번 달 일정이 없습니다" })]));
     const url = new URL(location.href);
     url.searchParams.set("month", `${cy}-${String(cm).padStart(2, "0")}`);
     history.replaceState(null, "", url);
@@ -112,22 +128,22 @@
       return;
     }
     $("ipo-rows").replaceChildren(...rows.map(it => h("tr", { id: "row-" + it.corp_code }, [
-      h("td", { class: "name" }, [h("strong", { text: it.corp_name }),
+      h("td", { class: "name card-title" }, [h("strong", { text: it.corp_name }),
         h("span", { class: "sub-line", text: [it.market, it.sector].filter(Boolean).join(" · ") || "시장·섹터 미입력" })]),
-      h("td", { text: STATUS[it.status] || "–" }),
-      h("td", null, [fmt.period(it.sub_start, it.sub_end),
-        it.listing_date ? h("span", { class: "sub-line", text: `상장 ${fmt.md(it.listing_date)}` }) : null]),
-      h("td", { class: "num" }, [fmt.num(it.offer_price || it.price),
-        h("span", { class: "sub-line", text: it.offer_price ? "확정" : (it.band ? `희망 ${fmt.num(it.band[0])}~${fmt.num(it.band[1])}` : "신고서 기재가") })]),
-      h("td", { text: (it.underwriters || []).join(", ") || "–" }),
-      h("td", { class: "num", text: fmt.ratio(it.demand_ratio) }),
-      h("td", { class: "num", text: fmt.pct(it.lockup_ratio) }),
-      h("td", { class: "num", text: fmt.pct(it.float_ratio) }),
-      h("td", null, h("details", { class: "reasons" }, [
+      h("td", { "data-label": "등급" }, h("details", { class: "reasons" }, [
         h("summary", null, badge(it.grade)),
         h("ul", null, (it.reasons || []).map(r => h("li", { text: r }))),
       ])),
-      h("td", null, h("a", { href: it.dart_url, target: "_blank", rel: "noopener noreferrer", text: "원문" })),
+      h("td", { "data-label": "상태", text: STATUS[it.status] || "–" }),
+      h("td", { "data-label": "청약일" }, [fmt.period(it.sub_start, it.sub_end),
+        it.listing_date ? h("span", { class: "sub-line", text: `상장 ${fmt.md(it.listing_date)}` }) : null]),
+      h("td", { class: "num", "data-label": "공모가(원)" }, [fmt.num(it.offer_price || it.price),
+        h("span", { class: "sub-line", text: it.offer_price ? "확정" : (it.band ? `희망 ${fmt.num(it.band[0])}~${fmt.num(it.band[1])}` : "신고서 기재가") })]),
+      h("td", { "data-label": "주관사", class: "uw", text: (it.underwriters || []).join(", ") || "–" }),
+      h("td", { class: "num", "data-label": "경쟁률", text: fmt.ratio(it.demand_ratio) }),
+      h("td", { class: "num", "data-label": "확약률", text: fmt.pct(it.lockup_ratio) }),
+      h("td", { class: "num", "data-label": "유통물량", text: fmt.pct(it.float_ratio) }),
+      h("td", { "data-label": "공시" }, h("a", { href: it.dart_url, target: "_blank", rel: "noopener noreferrer", text: "원문" })),
     ])));
   }
   renderFilters();

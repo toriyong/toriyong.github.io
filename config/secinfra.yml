@@ -1,0 +1,66 @@
+# 보안·인프라 페이지 수집 설정
+# 출처·카테고리·심각도 기준은 일일 보안 브리핑(morning-briefing) 기준과 동일하게 맞춤.
+# 항목을 추가/삭제하면 다음 배포부터 반영됩니다. 실패한 출처는 건너뛰고 직전 데이터를 유지합니다.
+
+news_days: 7          # 최근 며칠치 기사를 보관할지
+top_hours: 48         # '주요 이슈'로 뽑을 기간(시간)
+top_count: 5          # '주요 이슈' 개수
+max_items: 150        # 보관할 최대 기사 수
+
+feeds:
+  # 글로벌 1차 소스
+  - { name: The Hacker News,  url: "https://feeds.feedburner.com/TheHackersNews", region: global }
+  - { name: BleepingComputer, url: "https://www.bleepingcomputer.com/feed/",      region: global }
+  - { name: SecurityWeek,     url: "https://www.securityweek.com/feed/",          region: global }
+  - { name: Krebs on Security, url: "https://krebsonsecurity.com/feed/",          region: global }
+  - { name: CISA Advisories,  url: "https://www.cisa.gov/cybersecurity-advisories/all.xml", region: global }
+  # 국내 1차 소스
+  - { name: 보안뉴스,          url: "https://www.boannews.com/media/news_rss.xml",  region: kr }
+  - { name: 데일리시큐,        url: "https://www.dailysecu.com/rss/allArticle.xml", region: kr }
+
+# 카테고리 키워드 (제목 기준, 대소문자 무시). 여러 개에 해당하면 모두 표시.
+categories:
+  제로데이:    ["zero-day", "0-day", "zero day", "actively exploited", "exploited in the wild", "제로데이"]
+  취약점:      ["cve-", "vulnerab", "patch", "flaw", "rce", "remote code", "취약점", "패치", "보안 업데이트"]
+  랜섬웨어:    ["ransomware", "랜섬웨어"]
+  데이터유출:  ["breach", "leak", "exposed", "stolen", "hacked", "유출", "침해", "해킹 피해", "털려"]
+  AI위협:      ["\\bai\\b", "llm", "deepfake", "prompt injection", "chatgpt", "딥페이크", "인공지능", "생성형"]
+  공급망공격:  ["supply chain", "supply-chain", "npm", "pypi", "malicious package", "공급망"]
+  클라우드보안: ["cloud", "azure", "aws", "kubernetes", "k8s", "container", "oracle cloud", "클라우드", "쿠버네티스"]
+  정책/규제:   ["regulation", "lawsuit", " fine", "sec ", "규제", "과징금", "개인정보보호위원회", "개보위", "법안", "kisa"]
+
+# 심각도 규칙 (위에서부터 먼저 맞는 것). CISA KEV에 있는 CVE가 제목에 있으면 무조건 Critical.
+severity:
+  critical: ["zero-day", "0-day", "actively exploited", "exploited in the wild", "제로데이", "긴급", "unauthenticated rce", "인증 없이"]
+  high:     ["ransomware", "랜섬웨어", "breach", "유출", "exploit", "poc", "remote code", "rce", "원격 코드", "critical", "해킹", "hacked", "stolen"]
+  medium:   ["cve-", "vulnerab", "취약점", "patch", "패치", "flaw", "malware", "malicious", "악성", "phishing", "피싱", "backdoor", "백도어"]
+
+# CISA KEV(실제 악용 확인 취약점) — 미국 정부 공개 데이터
+kev:
+  url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+  days: 14
+
+# EOL(지원 종료) — endoflife.date 공개 API 제품 ID
+eol:
+  warn_days: 180       # 이 기간 안에 지원 종료되면 강조
+  max_cycles: 3        # 제품별 표시할 버전 수
+  products:
+    - { id: windows-server,          name: Windows Server }
+    - { id: rhel,                    name: RHEL }
+    - { id: rocky-linux,             name: Rocky Linux }
+    - { id: ubuntu,                  name: Ubuntu }
+    - { id: kubernetes,              name: Kubernetes }
+    - { id: azure-kubernetes-service, name: AKS }
+    - { id: nginx,                   name: NGINX }
+    - { id: php,                     name: PHP }
+
+# 클라우드 상태
+cloud_status:
+  feeds:
+    - { name: Azure, url: "https://rssfeed.azure.status.microsoft/en-us/status/feed/" }
+  links:
+    - { name: Azure 상태,  url: "https://azure.status.microsoft/" }
+    - { name: OCI 상태,    url: "https://ocistatus.oraclecloud.com/" }
+    - { name: NCP 공지,    url: "https://www.ncloud.com/support/notice" }
+    - { name: AWS 상태,    url: "https://health.aws.amazon.com/health/status" }
+    - { name: GitHub 상태, url: "https://www.githubstatus.com/" }
