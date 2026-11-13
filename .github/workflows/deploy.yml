@@ -23,7 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # PR을 연달아 머지하면 대기열에 있던 '이전 커밋' 실행이 나중에 끝나 최신 배포를 덮어쓸 수 있다.
+      # 어떤 실행이든 시작 시점의 main 최신 커밋으로 빌드해, 마지막 배포가 항상 최신 코드가 되게 한다.
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
