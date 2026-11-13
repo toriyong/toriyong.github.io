@@ -584,3 +584,5 @@ textarea.note { width: 100%; box-sizing: border-box; font: inherit; line-height:
 .star.on { color: #f0a92e; }
 .star:hover { color: #f0a92e; }
 .sr-item.fav .sr-name { font-weight: 600; }
+.wl-tag { font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none; padding: 1px 6px; border: 1px solid var(--line); border-radius: 999px; }
+.wl-tag:hover { background: var(--accent-soft); }

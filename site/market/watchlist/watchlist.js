@@ -25,7 +25,7 @@
   $("target-rows").replaceChildren(...(stocks.length ? stocks.map(s => {
     const p = s.price || {};
     return h("tr", null, [
-      h("td", { class: "name card-title" }, [h("a", { href: "#s-" + s.stock_code }, h("strong", { text: s.name })),
+      h("td", { class: "name card-title" }, [h("a", { href: `https://finance.naver.com/item/main.naver?code=${s.stock_code}`, target: "_blank", rel: "noopener noreferrer", title: `${s.name} 시세 보기` }, h("strong", { text: s.name })),
         h("span", { class: "sub-line", text: s.stock_code })]),
       h("td", { class: "num", "data-label": "현재가" }, [fmt.num(p.price),
         p.change_pct !== undefined && p.change_pct !== null ? h("span", { class: "sub-line" }, pctSpan(p.change_pct, true)) : null]),
@@ -42,28 +42,49 @@
   // 인라인 style 속성 대신 CSSOM으로 막대 길이 지정 (CSP)
   document.querySelectorAll(".attain-bar").forEach(el => { el.style.width = el.dataset.w + "%"; });
 
-  // ---------- 종목별 뉴스 · 공시
-  $("stocks").replaceChildren(...stocks.map(s => h("section", { class: "panel", id: "s-" + s.stock_code }, [
-    h("div", { class: "panel-head" }, [
-      h("h2", { text: s.name }),
-      h("span", { class: "meta" }, [s.stock_code, " · ", ext(`https://finance.naver.com/item/main.naver?code=${s.stock_code}`, "시세"),
-        ...(s.corp_code ? [" · ", ext(`https://dart.fss.or.kr/dsab007/main.do?autoSearch=Y&textCrpNm=${encodeURIComponent(s.name)}`, "DART")] : [])]),
+  // ---------- 관심종목 뉴스 · 주요 공시 (종목별로 늘어놓지 않고 한데 모아 간략히)
+  const PER_STOCK = 2;     // 종목당 최대 몇 건
+  const TOTAL = 6;         // 전체 최대 몇 건
+
+  // 일상적인 보고(지분 변동 신고 등)는 뒤로, 주가에 영향이 큰 공시는 앞으로
+  const MINOR = ["임원ㆍ주요주주특정증권등소유상황보고서", "임원·주요주주특정증권등소유상황보고서",
+    "최대주주등소유주식변동신고서", "주식등의대량보유상황보고서", "기업설명회", "IR개최",
+    "풍문또는보도", "자기주식취득신탁계약체결결과", "일괄신고추가서류", "증권발행실적보고서"];
+  const MAJOR = ["유상증자", "무상증자", "전환사채", "신주인수권부사채", "교환사채",
+    "자기주식", "합병", "분할", "영업양수", "영업양도", "주식교환", "주식이전",
+    "손익구조", "영업(잠정)실적", "매출액또는손익구조", "현금ㆍ현물배당", "현금·현물배당",
+    "소송", "감사보고서", "사업보고서", "분기보고서", "반기보고서", "주요사항보고서",
+    "최대주주변경", "유상감자", "상장폐지", "관리종목", "불성실공시", "투자주의", "거래정지"];
+  const hit = (t, list) => list.some(k => (t || "").replace(/\s/g, "").includes(k.replace(/\s/g, "")));
+  const rank = t => (hit(t, MAJOR) ? 2 : hit(t, MINOR) ? 0 : 1);
+
+  // 종목별 상위 몇 건만 뽑아 한 줄로 합친다
+  function merge(key, pick) {
+    const rows = [];
+    for (const s of stocks) rows.push(...(s[key] || []).slice().sort(pick).slice(0, PER_STOCK).map(x => ({ ...x, s })));
+    return rows.sort(pick).slice(0, TOTAL);
+  }
+  const byDate = (a, b) => String(b.date || "").localeCompare(String(a.date || ""));
+  const byRank = (a, b) => rank(b.title) - rank(a.title) || byDate(a, b);
+
+  const tag = s => h("a", { class: "wl-tag", href: `https://finance.naver.com/item/main.naver?code=${s.stock_code}`,
+    target: "_blank", rel: "noopener noreferrer", title: `${s.name} 시세 보기`, text: s.name });
+
+  function feed(rows, empty, meta) {
+    return rows.length ? h("ul", { class: "feed compact" }, rows.map(x => h("li", { class: "feed-item" }, [
+      h("div", { class: "feed-meta" }, [tag(x.s), h("span", { class: "meta", text: meta(x) })]),
+      h("a", { class: "feed-title", href: x.url, target: "_blank", rel: "noopener noreferrer", text: x.title }),
+    ]))) : h("p", { class: "meta", text: empty });
+  }
+
+  $("stocks").replaceChildren(
+    h("section", { class: "panel" }, [
+      h("div", { class: "panel-head" }, [h("h2", { text: "관심종목 뉴스" }), h("span", { class: "meta", text: "최근 7일 · 종목당 최대 2건" })]),
+      feed(merge("news", byDate), "최근 7일 뉴스 없음", x => `${x.source || ""} ${fmt.md(x.date)}`.trim()),
     ]),
-    h("div", { class: "grid-2" }, [
-      h("div", null, [
-        h("h3", { class: "sub-h", text: "최근 뉴스 (7일)" }),
-        (s.news || []).length ? h("ul", { class: "feed compact" }, s.news.map(n => h("li", { class: "feed-item" }, [
-          h("div", { class: "feed-meta" }, [n.source ? h("span", { class: "src", text: n.source }) : null, h("span", { class: "meta", text: fmt.md(n.date) })]),
-          h("a", { class: "feed-title", href: n.url, target: "_blank", rel: "noopener noreferrer", text: n.title }),
-        ]))) : h("p", { class: "meta", text: "최근 7일 뉴스 없음" }),
-      ]),
-      h("div", null, [
-        h("h3", { class: "sub-h", text: "DART 공시 (30일)" }),
-        (s.disclosures || []).length ? h("ul", { class: "feed compact" }, s.disclosures.map(d => h("li", { class: "feed-item" }, [
-          h("div", { class: "feed-meta" }, [h("span", { class: "meta", text: `${fmt.md(d.date)} · ${d.filer || ""}` })]),
-          h("a", { class: "feed-title", href: d.url, target: "_blank", rel: "noopener noreferrer", text: d.title }),
-        ]))) : h("p", { class: "meta", text: "최근 30일 공시 없음" }),
-      ]),
+    h("section", { class: "panel" }, [
+      h("div", { class: "panel-head" }, [h("h2", { text: "주요 공시" }), h("span", { class: "meta", text: "최근 30일 · 지분 변동 신고 등 일상 보고는 뒤로" })]),
+      feed(merge("disclosures", byRank), "최근 30일 공시 없음", x => `${fmt.md(x.date)}${x.filer ? " · " + x.filer : ""}`),
     ]),
-  ])));
+  );
 })();
