@@ -167,7 +167,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs/Zensical documentation
-/site
+# /site  (mkdocs 기본값 — 이 레포는 site/ 가 배포 폴더라 제외하지 않음)
 
 # mypy
 .mypy_cache/
@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- toriyong.github.io ---
+# 생성 데이터 (Actions가 배포 시 만듦)
+site/market/data/*.json
+.env
+*.key
+.DS_Store
+Thumbs.db

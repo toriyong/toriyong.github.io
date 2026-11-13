@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>toriyong · 보안 · 인프라 · 증시 대시보드</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-root="./" data-tab="home">
+  <main>
+    <div class="wrap">
+      <h1>보안 · 인프라 · 증시 대시보드</h1>
+      <p class="lead">매일 자동으로 갱신되는 개인 현황판입니다. 탭을 눌러 자세히 보세요.</p>
+
+      <div class="cards">
+        <a class="card" href="market/">
+          <h2>증시</h2>
+          <p>공모주 일정과 대응 구간 등급, 관심 종목 현황</p>
+          <div class="stat" id="market-stat">데이터 불러오는 중…</div>
+        </a>
+        <a class="card" href="security/">
+          <h2>보안</h2>
+          <p>국내·해외 주요 보안 이슈와 취약점 동향</p>
+          <div class="stat">준비 중</div>
+        </a>
+        <a class="card" href="infra/">
+          <h2>인프라</h2>
+          <p>클라우드·인프라 주요 공지와 서비스 상태</p>
+          <div class="stat">준비 중</div>
+        </a>
+      </div>
+    </div>
+  </main>
+  <script src="assets/common.js"></script>
+  <script src="assets/hub.js"></script>
+</body>
+</html>

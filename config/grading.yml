@@ -1,0 +1,24 @@
+# 공모주 대응 구간 등급 기준값 (초기값 — 백테스트 후 조정)
+# 숫자만 바꾸면 다음 배포부터 반영됩니다.
+
+scalp:            # 단타: 청약 후 상장일(D0) 시초가~오전
+  min_demand_ratio: 1000     # 수요예측 경쟁률(:1) 이상
+  min_lockup_ratio: 40       # 기관 의무보유확약 비율(%) 이상
+  max_float_ratio: 30        # 상장일 유통 가능 물량(%) 이하
+
+swing:            # 스윙: D0~D+5 — 단타 조건 중 이 개수 이상 충족
+  min_conditions_met: 2
+
+exclude:          # 제외: 아래 조건 중 min_flags 개 이상 해당
+  max_demand_ratio: 300      # 경쟁률이 이 값 미만
+  max_lockup_ratio: 10       # 확약률이 이 값 미만(한 자릿수)
+  min_secondary_ratio: 30    # 구주매출 비중(%) 이상
+  band_above_top: true       # 희망밴드 상단 초과 확정
+  min_flags: 2
+
+legend:
+  scalp: "단타 ⭐⭐ — 경쟁률·확약률·유통물량 3개 조건 모두 충족"
+  swing: "스윙 ⭐ — 3개 조건 중 2개 충족"
+  watch: "관찰 — 조건 1개 이하 충족, 상장 후 재검토"
+  exclude: "제외 ❌ — 저경쟁률·저확약·구주매출 과다·밴드 초과 중 2개 이상"
+  pending: "판정 보류 — 수요예측 결과(경쟁률·확약률)가 아직 입력되지 않음"

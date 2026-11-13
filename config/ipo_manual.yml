@@ -1,0 +1,27 @@
+# DART API로 자동 수집되지 않는 값을 직접 입력합니다.
+# 키는 종목명(DART 회사명과 똑같이). 입력한 값이 자동 수집값보다 우선합니다.
+#
+# 입력 가능한 항목
+#   market:            KOSPI / KOSDAQ
+#   sector:            섹터명 (예: AI, 로봇, 바이오, 2차전지)
+#   band:              [하단, 상단]  희망공모가 밴드(원)
+#   offer_price:       확정 공모가(원)
+#   demand_ratio:      기관 수요예측 경쟁률 (예: 1243.5)
+#   lockup_ratio:      기관 의무보유확약 비율(%)
+#   float_ratio:       상장일 유통 가능 물량 비율(%)
+#   secondary_ratio:   구주매출 비중(%)
+#   retail_ratio:      일반청약 경쟁률
+#   listing_date:      상장 예정일 (YYYY-MM-DD)
+#   note:              메모
+#
+# 예시 (앞의 # 을 지우면 적용됩니다)
+# 예시기업:
+#   market: KOSDAQ
+#   sector: AI
+#   band: [15000, 17600]
+#   offer_price: 17600
+#   demand_ratio: 1243.5
+#   lockup_ratio: 42.1
+#   float_ratio: 27.0
+#   secondary_ratio: 10
+#   listing_date: 2026-11-20
