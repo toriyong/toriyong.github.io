@@ -63,3 +63,12 @@ def test_real_mbd_below_band():
     assert v["band"] == [9600, 11700]
     assert v["demand_ratio"] == 187.1
     assert v["lockup_ratio"] == 0.0
+
+
+def test_real_retail_terms():
+    v = _real("20261103000312")          # 영광와이케이엠씨: 대신증권 단독
+    assert v["min_shares"] == 20
+    assert v["max_shares"] == 57000
+    assert v["margin_rate"] == 50.0
+    assert v["retail_shares"] == 575000
+    assert v["equal_shares"] == 287500

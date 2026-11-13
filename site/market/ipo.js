@@ -121,6 +121,54 @@
     );
   }
   renderSummary();
+
+  // ---------- 지금 청약할 종목: 청약 중 전부 + 가장 가까운 청약 예정 (최대 3건)
+  const won = v => (v === null || v === undefined) ? "–" : `${fmt.num(v)}원`;
+  const dleft = iso => Math.round((new Date(iso + "T00:00:00Z") - new Date(today + "T00:00:00Z")) / 864e5);
+  function renderNext() {
+    const subs = items.filter(i => i.status === "subscribing");
+    const ups = items.filter(i => i.status === "upcoming" && i.sub_start).sort((a, b) => a.sub_start.localeCompare(b.sub_start));
+    const list = [...subs, ...ups].slice(0, Math.max(3, subs.length));
+    if (!list.length) {
+      $("next-sub").replaceChildren(h("p", { class: "meta", text: "표시 범위 안에 청약 예정 종목이 없습니다." }));
+      return;
+    }
+    $("next-sub").replaceChildren(...list.map(it => {
+      const price = it.offer_price || (it.band ? it.band[1] : it.price);
+      const minQ = it.min_shares;
+      const rate = it.margin_rate ?? 50;
+      const deposit = minQ && price ? Math.round(minQ * price * rate / 100) : null;
+      const end = it.sub_end || it.sub_start;
+      const when = it.status === "subscribing"
+        ? (dleft(end) === 0 ? "오늘 마감" : `마감 D-${dleft(end)}`)
+        : `D-${dleft(it.sub_start)}`;
+      const row = (k, v, cls) => h("div", { class: "kv" + (cls ? " " + cls : "") }, [h("span", { class: "k", text: k }), h("span", { class: "v" }, v)]);
+      return h("article", { class: "next-card" + (it.status === "subscribing" ? " live" : "") }, [
+        h("div", { class: "next-head" }, [
+          h("a", { href: "#row-" + it.corp_code }, h("strong", { class: "next-name", text: it.corp_name })),
+          h("span", { class: "next-when" + (it.status === "subscribing" ? " live" : ""), text: when }),
+        ]),
+        h("div", { class: "next-badges" }, [
+          h("span", { class: "tag", text: STATUS[it.status] }),
+          it.subscribe ? h("span", { class: `badge sub-${it.subscribe.level}`, text: `청약 판단 ${it.subscribe.label}` }) : h("span", { class: "badge g-pending", text: "수요예측 전" }),
+          badge(it.grade),
+        ]),
+        h("div", { class: "kvs" }, [
+          row("청약일", fmt.period(it.sub_start, it.sub_end)),
+          row("공모가", it.offer_price ? `${won(it.offer_price)} (확정)` : it.band ? `희망 ${fmt.num(it.band[0])}~${fmt.num(it.band[1])}원` : won(it.price)),
+          row("최소수량(균등)", minQ ? `${fmt.num(minQ)}주` : "원문 확인"),
+          row("최소 증거금", deposit ? `${won(deposit)}${it.offer_price ? "" : " (상단 기준)"}` : "–", "hl"),
+          row("주관사", (it.underwriters || []).join(", ") || "–"),
+          row("기관 경쟁률", fmt.ratio(it.demand_ratio)),
+          row("확약률 · 유통", `${fmt.pct(it.lockup_ratio)} · ${fmt.pct(it.float_ratio)}`),
+          row("최고 한도", it.max_shares ? `${fmt.num(it.max_shares)}주` : "–"),
+          row("환불·납입일", it.pay_date ? fmt.md(it.pay_date) : "–"),
+        ]),
+        h("a", { class: "next-link", href: it.dart_url, target: "_blank", rel: "noopener noreferrer", text: "신고서 원문 ↗" }),
+      ]);
+    }));
+  }
+  renderNext();
   $("window-note").textContent =
     `오늘부터 영업일 ${WINDOW_DAYS}일 안(~${fmt.md(horizon)})에 청약하는 종목과 청약 중·상장 대기 종목, 최근 ${LISTED_KEEP_DAYS}일 상장 종목 기준 · 스팩 제외`;
 
