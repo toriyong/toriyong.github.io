@@ -15,4 +15,5 @@ targets:
 # 단계별 비중(기간 배분) — 합이 1이 아니어도 비율로 나눔
 phases:
   written:   [ { name: 이론 정리, weight: 6 }, { name: 기출 회독, weight: 3 }, { name: 모의고사·오답, weight: 1 } ]
-  practical: [ { name: 개념, weight: 5, kind: concept }, { name: 문제 풀이, weight: 4, kind: quiz }, { name: 실전 점검, weight: 1, kind: review } ]
+  # 12주 커리큘럼(개념) + 문제 풀이 3주 + 실전 점검 1주 + 기출 2주(past_days)
+  practical: [ { name: 개념, weight: 12, kind: concept }, { name: 문제 풀이, weight: 3, kind: quiz }, { name: 실전 점검, weight: 1, kind: review } ]
