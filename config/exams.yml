@@ -1,0 +1,39 @@
+# 자격증 시험 일정 — 공개 정보(공고 기준). 학습 페이지(비밀번호)에서 사용.
+#
+# ⚠️ 2027년 일정은 아직 공고 전이라 2026년 일정 패턴으로 추정한 '임시' 값입니다(estimated: true).
+#    큐넷(정보처리기사)·KCA(정보보안기사) 공고가 나오면 실제 날짜로 바꾸고 estimated 를 false 로 바꾸세요.
+#
+# 항목: written_apply(필기 접수) · written(필기 시험, CBT는 기간) · written_result(필기 발표)
+#       practical_apply(실기 접수) · practical(실기 시험) · final_result(최종 발표)
+#       날짜는 YYYY-MM-DD, 기간은 [시작, 끝]
+
+exams:
+  - id: eip
+    name: 정보처리기사
+    org: 한국산업인력공단 (큐넷)
+    url: https://www.q-net.or.kr
+    rounds:
+      - { round: 2027-1, estimated: true,
+          written_apply: [2027-01-11, 2027-01-14], written: [2027-01-29, 2027-03-02], written_result: 2027-03-10,
+          practical_apply: [2027-03-22, 2027-03-25], practical: [2027-04-17, 2027-05-02], final_result: 2027-06-04 }
+      - { round: 2027-2, estimated: true,
+          written_apply: [2027-04-19, 2027-04-22], written: [2027-05-08, 2027-05-28], written_result: 2027-06-09,
+          practical_apply: [2027-06-21, 2027-06-24], practical: [2027-07-17, 2027-08-03], final_result: 2027-09-03 }
+      - { round: 2027-3, estimated: true,
+          written_apply: [2027-07-19, 2027-07-22], written: [2027-08-07, 2027-09-01], written_result: 2027-09-08,
+          practical_apply: [2027-09-27, 2027-09-30], practical: [2027-11-06, 2027-11-23], final_result: 2027-12-17 }
+
+  - id: eis
+    name: 정보보안기사
+    org: 한국방송통신전파진흥원 (KCA)
+    url: https://www.cq.or.kr
+    rounds:
+      - { round: 2027-1, estimated: true,
+          written_apply: [2027-01-25, 2027-01-28], written: [2027-02-08, 2027-03-05], written_result: 2027-03-12,
+          practical_apply: [2027-03-22, 2027-03-25], practical: 2027-04-10, final_result: 2027-05-07 }
+      - { round: 2027-2, estimated: true,
+          written_apply: [2027-05-10, 2027-05-13], written: [2027-05-21, 2027-06-14], written_result: 2027-06-18,
+          practical_apply: [2027-06-28, 2027-07-01], practical: 2027-07-24, final_result: 2027-08-27 }
+      - { round: 2027-3, estimated: true,
+          written_apply: [2027-08-30, 2027-09-02], written: [2027-09-10, 2027-10-05], written_result: 2027-10-08,
+          practical_apply: [2027-10-18, 2027-10-21], practical: 2027-11-13, final_result: 2027-12-17 }
