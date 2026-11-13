@@ -100,6 +100,8 @@ jobs:
       - name: Stock list (종목 검색 목록)
         timeout-minutes: 5
         continue-on-error: true
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
         run: |
           cp /tmp/prev_stocks.json site/market/stocks.json 2>/dev/null || true
           python collect/market/stock_list.py --out site/market/stocks.json || echo "종목 목록 수집 실패 → 직전 데이터 사용"
