@@ -29,6 +29,7 @@ import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import dart_doc  # noqa: E402  신고서 본문 해석
+import kind_listing  # noqa: E402  KIND 신규상장(상장일·시장)
 
 KST = timezone(timedelta(hours=9))
 API = "https://opendart.fss.or.kr/api"
@@ -139,14 +140,27 @@ def search_equity_filings(session, key: str, days: int) -> list[dict]:
     return rows
 
 
-def latest_ipo_filings(rows: list[dict]) -> list[dict]:
+def _is_ipo_row(r: dict, kind_idx: dict | None) -> bool:
+    """비상장(E) 회사의 공시이거나, 상장 직후라 corp_cls 가 바뀌었지만 KIND 신규상장 목록에 있고
+    공시일이 상장일 이전인 경우(= 그 상장을 위한 신고서)만 IPO 공시로 본다."""
+    if r.get("corp_cls") == "E":
+        return True
+    if not kind_idx or r.get("corp_cls") not in ("K", "Y", "N"):
+        return False
+    m = kind_listing.match(r.get("corp_name", ""), kind_idx)
+    dt = str(r.get("rcept_dt") or "")
+    return bool(m and dt and f"{dt[:4]}-{dt[4:6]}-{dt[6:8]}" <= m["listing_date"])
+
+
+def latest_ipo_filings(rows: list[dict], kind_idx: dict | None = None) -> list[dict]:
     """비상장사(E)의 증권신고서만 남기고, 회사별 최신 접수번호 1건으로 줄인다.
+    (상장 직후 종목은 KIND 신규상장 목록으로 확인해 함께 남긴다)
     [발행조건확정] 신고서가 있으면 그 접수번호를 confirm_rcept_no 로 함께 기록(수요예측 결과가 들어 있음)."""
     latest: dict[str, dict] = {}
     confirm: dict[str, str] = {}
     withdrawn: dict[str, str] = {}          # 회사별 가장 최근 철회신고서 접수번호
     for r in rows:
-        if r.get("corp_cls") != "E":
+        if not _is_ipo_row(r, kind_idx):
             continue
         name = r.get("report_nm") or ""
         if "철회" in name and r.get("corp_code"):
@@ -249,7 +263,13 @@ def fetch_detail(session, key: str, filing: dict, days: int) -> dict:
 def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[dict]:
     session = requests.Session()
     session.headers["User-Agent"] = "toriyong.github.io data collector"
-    filings = latest_ipo_filings(search_equity_filings(session, key, days))
+    try:
+        kind_idx = kind_listing.index_by_name(kind_listing.fetch_new_listings(days_back=days))
+        log(f"KIND 신규상장 {len(kind_idx)}건")
+    except (requests.RequestException, ValueError) as e:      # KIND 실패해도 DART 수집은 계속
+        log(f"KIND 신규상장 조회 실패(상장일 없이 진행): {e}")
+        kind_idx = {}
+    filings = latest_ipo_filings(search_equity_filings(session, key, days), kind_idx)
     log(f"IPO 후보 공시 {len(filings)}건")
     cache = {p.get("corp_code"): p for p in (prev_items or [])}
 
@@ -304,6 +324,11 @@ def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[d
             doc_vals = {k: v for k, v in doc_vals.items() if k not in ("offer_price", "demand_ratio", "lockup_ratio")}
         name = f.get("corp_name", "")
         link_rcept = f.get("confirm_rcept_no") or f.get("rcept_no")
+        lst = kind_listing.match(name, kind_idx)
+        if lst and detail.get("sub_end") and lst["listing_date"] < detail["sub_end"]:
+            lst = None                                  # 청약 전 상장일 → 다른 회사로 보고 버림
+        listing = {"listing_date": lst["listing_date"], "market": lst.get("market"),
+                   "sector": lst.get("industry")} if lst else {}
         items.append({
             "corp_name": name,
             "corp_code": f.get("corp_code"),
@@ -318,6 +343,7 @@ def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[d
             "doc": doc_vals,
             "doc_ver": dart_doc.PARSER_VERSION if doc_rcept else None,
             **doc_vals,                                 # offer_price·band·경쟁률·확약률·유통물량·구주매출
+            **listing,                                  # KIND: 상장일·시장·업종
         })
     log(f"본문 해석 {parsed_n}건(신규) · {cached_n}건(캐시) · 실패 {failed_n}건 · 이월 {deferred_n}건 "
         f"· 소요 {time.monotonic() - started:.0f}초")
