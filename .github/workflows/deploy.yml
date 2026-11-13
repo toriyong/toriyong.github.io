@@ -85,6 +85,14 @@ jobs:
             --prev /tmp/prev_results.json || echo "성적표 수집 실패 → 직전 데이터 사용"
           [ -s site/market/data/results.json ] || cp /tmp/prev_results.json site/market/data/results.json 2>/dev/null || true
 
+      - name: Research targets (증권사 목표가)
+        timeout-minutes: 8
+        continue-on-error: true
+        run: |
+          python collect/market/research.py \
+            --config config/watchlist.yml \
+            --out site/market/data/targets.json || echo "목표가 수집 실패 → 직접 입력값만 사용"
+
       - name: Watchlist (관심종목)
         timeout-minutes: 5
         continue-on-error: true
@@ -94,6 +102,7 @@ jobs:
         run: |
           python collect/market/watchlist.py \
             --out site/market/data/watchlist.json \
+            --targets site/market/data/targets.json \
             --prev /tmp/prev_watchlist.json || echo "관심종목 수집 실패 → 직전 데이터 사용"
           [ -s site/market/data/watchlist.json ] || cp /tmp/prev_watchlist.json site/market/data/watchlist.json 2>/dev/null || true
 
