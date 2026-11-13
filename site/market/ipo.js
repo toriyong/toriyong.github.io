@@ -69,14 +69,50 @@
   }
   $("updated").textContent = `기준 시각 ${fmt.stamp(data.updated_at)} (KST)`;
 
-  // ---------- 요약
+  // ---------- 요약 (칩을 누르면 아래에 해당 종목 간단 정보)
   const count = pred => items.filter(pred).length;
-  const nonSpac = i => i.grade !== "spac";
-  $("summary").replaceChildren(
+  const SUMMARY = [
     ...[["subscribing", "청약 중"], ["upcoming", "청약 예정"], ["awaiting_listing", "상장 대기"]]
-      .map(([s, label]) => h("span", { class: "chip" }, [label, h("strong", { text: count(i => i.status === s && nonSpac(i)) })])),
-    ...GRADE_ORDER.map(g => h("span", { class: "chip" }, [badge(g), h("strong", { text: count(i => i.grade === g) })])),
-  );
+      .map(([s, label]) => ({ id: "s-" + s, label, pred: i => i.status === s, head: () => label })),
+    ...GRADE_ORDER.map(g => ({ id: "g-" + g, grade: g, pred: i => i.grade === g, head: () => GRADE[g] })),
+  ];
+  let openChip = null;
+  function renderSummary() {
+    $("summary").replaceChildren(...SUMMARY.map(c => {
+      const n = count(c.pred);
+      return h("button", {
+        type: "button", class: "chip chip-btn" + (openChip === c.id ? " on" : ""),
+        "aria-expanded": String(openChip === c.id), "aria-controls": "summary-detail", disabled: n ? null : "",
+        onclick: () => { openChip = openChip === c.id ? null : c.id; renderSummary(); },
+      }, [c.grade ? badge(c.grade) : c.label, h("strong", { text: n })]);
+    }));
+    const box = $("summary-detail");
+    const c = SUMMARY.find(x => x.id === openChip);
+    if (!c) { box.classList.add("hidden"); box.replaceChildren(); return; }
+    const list = items.filter(c.pred);
+    box.classList.remove("hidden");
+    box.replaceChildren(
+      h("div", { class: "sd-head" }, [
+        h("strong", { text: `${c.head()} ${list.length}건` }),
+        h("button", { type: "button", class: "link-btn", text: "닫기", onclick: () => { openChip = null; renderSummary(); } }),
+      ]),
+      h("ul", { class: "sd-list" }, list.map(it => h("li", null, [
+        h("a", { class: "sd-name", href: "#row-" + it.corp_code, text: it.corp_name,
+          onclick: () => { filter = "all"; showLater = false; renderFilters(); renderRows(); } }),
+        h("span", { class: "sd-meta" }, [
+          h("span", { text: `${STATUS[it.status] || "–"} · ${fmt.period(it.sub_start, it.sub_end) || "일정 미정"}` }),
+          h("span", { text: `공모가 ${fmt.num(it.offer_price || it.price)}${it.offer_price ? "(확정)" : ""}` }),
+          it.demand_ratio != null ? h("span", { text: `경쟁률 ${fmt.ratio(it.demand_ratio)}` }) : null,
+          it.lockup_ratio != null ? h("span", { text: `확약 ${fmt.pct(it.lockup_ratio)}` }) : null,
+        ]),
+        h("span", { class: "sd-badges" }, [
+          c.grade ? null : badge(it.grade),
+          it.subscribe ? h("span", { class: `badge sub-${it.subscribe.level}`, text: it.subscribe.label }) : null,
+        ]),
+      ]))),
+    );
+  }
+  renderSummary();
   $("window-note").textContent =
     `오늘부터 ${WINDOW_DAYS}일 안(~${fmt.md(horizon)})에 청약하는 종목과 청약 중·상장 대기 종목, 최근 ${LISTED_KEEP_DAYS}일 상장 종목 기준 · 스팩 제외`;
 
