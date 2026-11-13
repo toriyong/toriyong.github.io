@@ -38,6 +38,16 @@ PRICE_APIS = [u for u in [os.environ.get("DATA_GO_KR_PRICE_URL", "").strip()] if
 _working_api: list[str] = []
 
 
+
+_KEY_RE = re.compile(r"(?i)\b(serviceKey|crtfc_key|api_?key|access_?token|token|key)=[^&\s'\"]+")
+
+
+def redact(msg) -> str:
+    """오류 문자열에서 URL 쿼리의 인증키 값을 지운다(공개 JSON·로그에 키가 남지 않도록)."""
+    s = _KEY_RE.sub(lambda m: m.group(1) + "=***", str(msg))
+    s = re.sub(r"for url: \S+", "", s).strip()           # requests HTTPError 의 전체 URL 제거
+    return s
+
 def price_get(session, params: dict):
     """동작하는 주소를 한 번 찾으면 계속 그 주소를 쓴다(404·라우팅 오류면 다음 후보)."""
     last = None
@@ -50,6 +60,9 @@ def price_get(session, params: dict):
         if r.status_code == 404 or "API not found" in r.text[:300] or "Unexpected errors" in r.text[:300]:
             last = RuntimeError(f"{url} → {r.status_code}")
             continue
+        if r.status_code in (401, 403):
+            raise RuntimeError(f"HTTP {r.status_code} 권한 없음 — 공공데이터포털에서 '금융위원회_주식시세정보' "
+                               "활용신청 승인 여부와 인증키(Decoding) 활성화(승인 후 1~2시간)를 확인하세요")
         if not _working_api:
             _working_api.append(url)
             print(f"[price] 시세 API 주소: {url}", file=sys.stderr)
@@ -197,7 +210,7 @@ def main() -> int:
         try:
             codes = corp_codes(s, dart_key, {str(x.get("stock_code", "")).zfill(6) for x in stocks})
         except (requests.RequestException, RuntimeError, zipfile.BadZipFile, ET.ParseError) as e:
-            errors.append(f"DART 고유번호: {e}")
+            errors.append(f"DART 고유번호: {redact(e)}")
 
     out = []
     for st in stocks:
@@ -208,17 +221,17 @@ def main() -> int:
         try:
             row["price"] = last_price(s, price_key, code) if price_key else None
         except (requests.RequestException, RuntimeError) as e:
-            errors.append(f"{name} 현재가: {e}")
+            errors.append(f"{name} 현재가: {redact(e)}")
             row["price"] = old.get("price")
         try:
             row["disclosures"] = disclosures(s, dart_key, row["corp_code"]) if row["corp_code"] else []
         except (requests.RequestException, RuntimeError, ValueError) as e:
-            errors.append(f"{name} 공시: {e}")
+            errors.append(f"{name} 공시: {redact(e)}")
             row["disclosures"] = old.get("disclosures", [])
         try:
             row["news"] = news(st.get("news_query") or name)
         except Exception as e:                               # feedparser 는 예외 종류가 다양함
-            errors.append(f"{name} 뉴스: {e}")
+            errors.append(f"{name} 뉴스: {redact(e)}")
             row["news"] = old.get("news", [])
         row.update(target_summary(st.get("targets") or [], (row.get("price") or {}).get("price")))
         out.append(row)

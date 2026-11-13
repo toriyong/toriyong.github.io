@@ -34,6 +34,16 @@ SEV_ORDER = {"critical": 0, "high": 1, "medium": 2, "info": 3}
 CVE_RE = re.compile(r"CVE-\d{4}-\d{4,7}", re.I)
 
 
+
+_KEY_RE = re.compile(r"(?i)\b(serviceKey|crtfc_key|api_?key|access_?token|token|key)=[^&\s'\"]+")
+
+
+def redact(msg) -> str:
+    """오류 문자열에서 URL 쿼리의 인증키 값을 지운다(공개 JSON·로그에 키가 남지 않도록)."""
+    s = _KEY_RE.sub(lambda m: m.group(1) + "=***", str(msg))
+    s = re.sub(r"for url: \S+", "", s).strip()           # requests HTTPError 의 전체 URL 제거
+    return s
+
 def log(msg: str) -> None:
     print(f"[secinfra] {msg}", file=sys.stderr)
 
@@ -111,7 +121,7 @@ def collect_news(cfg: dict, kev_ids: set) -> tuple[list[dict], list[str]]:
                 n += 1
             log(f"뉴스 {f['name']}: {n}건")
         except Exception as ex:   # 출처 하나의 실패가 전체를 막지 않게
-            errors.append(f"{f['name']}: {str(ex)[:120]}")
+            errors.append(f"{f['name']}: {redact(ex)[:120]}")
             log(f"뉴스 {f['name']} 실패: {ex}")
     items.sort(key=lambda x: x["published"] or "", reverse=True)
     return items[: cfg.get("max_items", 150)], errors
@@ -207,7 +217,7 @@ def collect_eol(cfg: dict) -> tuple[list[dict], list[str]]:
                         "cycles": rows[: cfg["eol"].get("max_cycles", 3)]})
             time.sleep(0.2)
         except Exception as ex:
-            errors.append(f"EOL {p['name']}: {str(ex)[:120]}")
+            errors.append(f"EOL {p['name']}: {redact(ex)[:120]}")
             log(f"EOL {p['name']} 실패: {ex}")
     return out, errors
 
@@ -226,7 +236,7 @@ def collect_cloud(cfg: dict) -> tuple[dict, list[str]]:
                 incidents.append({"provider": f["name"], "title": (e.get("title") or "").strip(),
                                   "link": e.get("link"), "published": ts.isoformat(timespec="minutes") if ts else None})
         except Exception as ex:
-            errors.append(f"상태 {f['name']}: {str(ex)[:120]}")
+            errors.append(f"상태 {f['name']}: {redact(ex)[:120]}")
             log(f"상태 {f['name']} 실패: {ex}")
     return {"incidents": incidents, "links": cfg["cloud_status"].get("links", [])}, errors
 
@@ -306,7 +316,7 @@ def main() -> int:
         try:
             parts["kev"], kev_ids = collect_kev(cfg)
         except Exception as ex:
-            errors.append(f"KEV: {str(ex)[:120]}")
+            errors.append(f"KEV: {redact(ex)[:120]}")
             parts["kev"] = prev.get("kev") or {"recent": [], "total": None}
             kev_ids = {v["cve"].upper() for v in parts["kev"].get("recent", []) if v.get("cve")}
             stale.append("kev")
