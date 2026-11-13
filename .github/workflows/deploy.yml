@@ -43,7 +43,11 @@ jobs:
           curl -fsS "$base/market/data/raw_ipo.json" -o /tmp/prev_raw_ipo.json && echo "prev ipo ok" || echo "no prev ipo"
           curl -fsS "$base/security/data/secinfra.json" -o /tmp/prev_secinfra.json && echo "prev secinfra ok" || echo "no prev secinfra"
 
+      # 본문 다운로드는 스크립트 안에서 시간 예산(기본 300초)으로 끊는다.
+      # 그래도 멈추면 이 단계만 9분에 종료하고, 아래 단계에서 직전 데이터로 대체한다.
       - name: Collect IPO filings (DART)
+        timeout-minutes: 9
+        continue-on-error: true
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
@@ -53,6 +57,10 @@ jobs:
 
       - name: Grade IPOs
         run: |
+          if [ ! -s site/market/data/raw_ipo.json ] && [ -s /tmp/prev_raw_ipo.json ]; then
+            echo "DART 수집 결과가 없어 직전 데이터를 사용합니다"
+            cp /tmp/prev_raw_ipo.json site/market/data/raw_ipo.json
+          fi
           python process/market/grade_ipo.py \
             --raw site/market/data/raw_ipo.json \
             --out site/market/data/ipo.json

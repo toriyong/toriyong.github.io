@@ -35,6 +35,13 @@ API = "https://opendart.fss.or.kr/api"
 DETAIL_TY_EQUITY = "C001"      # 발행공시 > 증권신고(지분증권)
 MAX_WINDOW_DAYS = 89           # 회사 지정 없이 검색할 때 기간 제한(3개월)에 맞춤
 REQUEST_GAP_SEC = 0.15         # 호출 간격(과도한 호출 방지)
+# 신고서 원본(ZIP)은 건당 수 MB라 해외(GitHub) 러너에서 느릴 수 있다.
+# 한 번 실행에서 본문 다운로드에 쓰는 총 시간을 제한하고, 못 받은 건은 다음 실행에서 이어 받는다
+# (받은 건은 doc_rcept_no 캐시로 재사용되므로 몇 번의 실행 뒤에는 신규 공시만 받게 된다).
+DOC_BUDGET_SEC = int(os.environ.get("DART_DOC_BUDGET_SEC", "300"))  # 실행당 본문 다운로드 총 예산
+DOC_DEADLINE_SEC = 90          # 문서 1건 최대 다운로드 시간
+DOC_TIMEOUT = (10, 30)         # (연결, 읽기 무응답) 초
+DOC_MAX_BYTES = 40 * 1024 * 1024
 
 # estkRs.json 응답에서 값을 찾을 후보 키 (앞쪽이 우선)
 KEYS = {
@@ -159,11 +166,23 @@ def latest_ipo_filings(rows: list[dict]) -> list[dict]:
 def fetch_document_values(session, key: str, rcept_no: str) -> dict:
     """공시서류 원본(document.xml, ZIP)을 받아 공모 핵심 수치를 해석한다."""
     time.sleep(REQUEST_GAP_SEC)
-    resp = session.get(f"{API}/document.xml", params={"crtfc_key": key, "rcept_no": rcept_no}, timeout=60)
-    resp.raise_for_status()
-    if not resp.content.startswith(b"PK"):           # ZIP이 아니면 오류 응답(XML/JSON)
-        raise DartError(f"document.xml 응답이 ZIP이 아님: {resp.content[:120]!r}")
-    return dart_doc.parse_offering(dart_doc.zip_to_text(resp.content, rcept_no))
+    t0 = time.monotonic()
+    buf = bytearray()
+    with session.get(f"{API}/document.xml", params={"crtfc_key": key, "rcept_no": rcept_no},
+                     timeout=DOC_TIMEOUT, stream=True) as resp:
+        resp.raise_for_status()
+        for chunk in resp.iter_content(chunk_size=256 * 1024):
+            buf += chunk
+            if len(buf) > DOC_MAX_BYTES:
+                raise DartError(f"문서가 너무 큼(>{DOC_MAX_BYTES // 1048576}MB)")
+            if time.monotonic() - t0 > DOC_DEADLINE_SEC:
+                raise DartError(f"다운로드 {DOC_DEADLINE_SEC}초 초과({len(buf) // 1024}KB 수신)")
+    blob = bytes(buf)
+    if not blob.startswith(b"PK"):                   # ZIP이 아니면 오류 응답(XML/JSON)
+        raise DartError(f"document.xml 응답이 ZIP이 아님: {blob[:120]!r}")
+    vals = dart_doc.parse_offering(dart_doc.zip_to_text(blob, rcept_no))
+    log(f"  본문 {rcept_no}: {len(blob) // 1024}KB, {time.monotonic() - t0:.1f}초, 항목 {len(vals)}개")
+    return vals
 
 
 _logged_shape = False
@@ -221,33 +240,57 @@ def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[d
     filings = latest_ipo_filings(search_equity_filings(session, key, days))
     log(f"IPO 후보 공시 {len(filings)}건")
     cache = {p.get("corp_code"): p for p in (prev_items or [])}
-    items = []
-    parsed_n = cached_n = 0
+
+    # 1) 기본 정보(estkRs): 가볍고 빠르다
+    rows = []
     for f in filings:
         try:
             detail = fetch_detail(session, key, f, days)
         except (DartError, requests.RequestException) as e:
             log(f"상세 조회 실패 {f.get('corp_name')}: {e}")
             detail = {}
+        rows.append((f, detail))
 
-        # 신고서 본문 해석: 발행조건확정 신고서가 있으면 그것, 없으면 최신 신고서
+    # 2) 신고서 본문: 캐시 우선, 새로 받을 건은 '발행조건확정 → 최근 접수' 순으로 예산 안에서
+    doc_of: dict[str, tuple[str | None, dict]] = {}
+    todo = []
+    for f, _ in rows:
+        code = f.get("corp_code")
         doc_rcept = f.get("confirm_rcept_no") or f.get("rcept_no")
-        prev = cache.get(f.get("corp_code")) or {}
-        doc_vals: dict = {}
-        if prev.get("doc_rcept_no") == doc_rcept and isinstance(prev.get("doc"), dict):
-            doc_vals = prev["doc"]                      # 같은 문서는 다시 받지 않음
-            cached_n += 1
+        prev = cache.get(code) or {}
+        if doc_rcept and prev.get("doc_rcept_no") == doc_rcept and isinstance(prev.get("doc"), dict):
+            doc_of[code] = (doc_rcept, prev["doc"])     # 같은 문서는 다시 받지 않음
         elif doc_rcept:
-            try:
-                doc_vals = fetch_document_values(session, key, doc_rcept)
-                parsed_n += 1
-            except (DartError, requests.RequestException, ValueError, OSError) as e:
-                log(f"본문 해석 실패 {f.get('corp_name')}: {e}")
+            todo.append(f)
+    cached_n = len(doc_of)
+    todo.sort(key=lambda f: f.get("rcept_dt") or "", reverse=True)
+    todo.sort(key=lambda f: not f.get("confirm_rcept_no"))   # 안정 정렬: 확정 우선, 그 안에서 최신순
+    log(f"본문 캐시 {cached_n}건 · 신규 대상 {len(todo)}건 (예산 {DOC_BUDGET_SEC}초)")
+
+    started = time.monotonic()
+    parsed_n = failed_n = deferred_n = 0
+    for i, f in enumerate(todo, 1):
+        if time.monotonic() - started > DOC_BUDGET_SEC:
+            deferred_n = len(todo) - i + 1
+            log(f"본문 예산 소진 → 남은 {deferred_n}건은 다음 실행에서 처리")
+            break
+        doc_rcept = f.get("confirm_rcept_no") or f.get("rcept_no")
+        log(f"[{i}/{len(todo)}] {f.get('corp_name')} 본문 받는 중")
+        try:
+            doc_of[f.get("corp_code")] = (doc_rcept, fetch_document_values(session, key, doc_rcept))
+            parsed_n += 1
+        except (DartError, requests.RequestException, ValueError, OSError) as e:
+            failed_n += 1
+            log(f"  본문 해석 실패 {f.get('corp_name')}: {e}")
+
+    items = []
+    for f, detail in rows:
+        doc_rcept, doc_vals = doc_of.get(f.get("corp_code"), (None, {}))
         confirmed = bool(f.get("confirm_rcept_no"))
         if not confirmed:                               # 확정 전에는 공모가 확정값을 쓰지 않음
             doc_vals = {k: v for k, v in doc_vals.items() if k not in ("offer_price", "demand_ratio", "lockup_ratio")}
-
         name = f.get("corp_name", "")
+        link_rcept = f.get("confirm_rcept_no") or f.get("rcept_no")
         items.append({
             "corp_name": name,
             "corp_code": f.get("corp_code"),
@@ -255,14 +298,15 @@ def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[d
             "rcept_dt": f.get("rcept_dt"),
             "report_nm": (f.get("report_nm") or "").strip(),
             "is_spac": "스팩" in name or "기업인수목적" in name,
-            "dart_url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={doc_rcept or f.get('rcept_no')}",
+            "dart_url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={link_rcept}",
             **detail,
             "confirmed": confirmed,
-            "doc_rcept_no": doc_rcept,
+            "doc_rcept_no": doc_rcept,                  # None 이면 다음 실행에서 다시 시도
             "doc": doc_vals,
             **doc_vals,                                 # offer_price·band·경쟁률·확약률·유통물량·구주매출
         })
-    log(f"본문 해석 {parsed_n}건(신규) · {cached_n}건(캐시)")
+    log(f"본문 해석 {parsed_n}건(신규) · {cached_n}건(캐시) · 실패 {failed_n}건 · 이월 {deferred_n}건 "
+        f"· 소요 {time.monotonic() - started:.0f}초")
     return items
 
 
