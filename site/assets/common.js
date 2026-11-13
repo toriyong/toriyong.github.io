@@ -2,6 +2,10 @@
 (function () {
   "use strict";
 
+  // 배포 직후 브라우저·CDN 에 남은 예전 HTML 로 열렸으면 한 번만 새로고침한다.
+  // (HTML 이 불러온 이 스크립트의 ?v= 값과 서버의 version.json 을 비교)
+  const myVer = (() => { try { return new URL(document.currentScript.src).searchParams.get("v"); } catch (e) { return null; } })();
+
   const body = document.body;
   const root = body.dataset.root || "./";       // 페이지 깊이에 따른 상대 경로 (예: "../")
   const current = body.dataset.tab || "home";
@@ -154,6 +158,18 @@
   }
 
   window.Hub = { h, fmt, todayKst, loadJson, root };
+  if (myVer) {
+    fetch(root + "version.json?t=" + Date.now(), { cache: "no-store" })
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => {
+        if (!j || !j.v || j.v === myVer) return;
+        let tried = null;
+        try { tried = sessionStorage.getItem("reloaded-for"); sessionStorage.setItem("reloaded-for", j.v); } catch (e) { return; }
+        if (tried !== j.v) location.reload();
+      })
+      .catch(() => {});
+  }
+
   renderHeader();
   renderSubnav();
   renderFooter();

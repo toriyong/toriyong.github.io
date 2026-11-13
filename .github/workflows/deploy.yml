@@ -118,6 +118,7 @@ jobs:
           find site -name '*.html' -print0 | xargs -0 sed -i -E \
             -e "s#(href=\"[^\"?]+\.css)\"#\1?v=${v}\"#g" \
             -e "s#(src=\"[^\"?]+\.js)\"#\1?v=${v}\"#g"
+          printf '{"v":"%s"}\n' "$v" > site/version.json
           grep -ho '\.\(css\|js\)?v=[0-9a-f]*' site/index.html site/market/index.html | sort -u || true
 
       - uses: actions/upload-pages-artifact@v5
