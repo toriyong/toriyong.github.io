@@ -14,63 +14,77 @@
   <main>
     <div class="wrap">
       <h1>보안 · 인프라</h1>
-      <p class="lead">국내·해외 보안 뉴스, 실제 악용 중인 취약점, 정기 패치 일정, 지원 종료(EOL), 클라우드 상태를 한 화면에서 봅니다.</p>
+      <p class="lead">KISA·금융보안원·CISA 등 공식 기관 발표를 중심으로, 최근 취약점과 공격 단계·제로트러스트 관점까지 한 화면에서 봅니다.</p>
 
       <div id="banner-sample" class="banner info hidden">예시 데이터입니다. 실제 데이터가 수집되면 자동으로 바뀝니다.</div>
       <div id="banner-error" class="banner warn hidden"></div>
 
-      <!-- 1. 오늘의 요약 -->
+      <!-- 요약 -->
       <section class="panel">
         <div class="panel-head">
           <h2>오늘의 요약</h2>
           <span class="meta" id="updated">기준 시각 –</span>
         </div>
-        <div class="stats" id="stats"></div>
+        <div class="stats stats-5" id="stats"></div>
       </section>
 
       <nav class="jump" aria-label="섹션 바로가기">
-        <a href="#top-issues">주요 이슈</a>
-        <a href="#news">보안 뉴스</a>
-        <a href="#trend">위협 동향</a>
+        <a href="#official">공식 공지</a>
+        <a href="#media">국내 보도</a>
+        <a href="#cve">최근 CVE</a>
+        <a href="#frame">킬 체인 · 제로트러스트</a>
         <a href="#kev">실제 악용 취약점</a>
         <a href="#patch">패치 일정</a>
         <a href="#infra">지원 종료(EOL)</a>
-        <a href="#cloud">클라우드 상태</a>
       </nav>
 
-      <!-- 2. 주요 이슈 -->
-      <section class="panel" id="top-issues">
+      <!-- 1. 공식 보안 공지 -->
+      <section class="panel" id="official">
         <div class="panel-head">
-          <h2>주요 이슈</h2>
-          <span class="meta">최근 48시간 · 심각도순</span>
+          <h2>공식 보안 공지 <span class="meta" id="official-count"></span></h2>
+          <div class="filters" id="f-org" aria-label="기관"></div>
         </div>
-        <ol class="top-list" id="top-list"></ol>
+        <ul class="feed" id="official-list"></ul>
+        <div class="more-wrap"><button type="button" class="more" id="official-more">더 보기</button></div>
       </section>
 
-      <!-- 3. 보안 뉴스 -->
-      <section class="panel" id="news">
+
+      <!-- 5. 주요 사고 보도 -->
+      <section class="panel" id="media">
         <div class="panel-head">
-          <h2>보안 뉴스 <span class="meta" id="news-count"></span></h2>
+          <h2>국내 주요 보안 보도</h2>
+          <span class="meta">국내 신뢰 매체 우선 · 같은 사건은 묶어서 보도 매체 수가 많은 순 · 해외는 최대 3건</span>
         </div>
-        <div class="filter-rows">
-          <div class="filters" id="f-region" aria-label="지역"></div>
-          <div class="filters" id="f-sev" aria-label="심각도"></div>
-          <div class="filters" id="f-cat" aria-label="카테고리"></div>
-        </div>
-        <ul class="news-list" id="news-list"></ul>
-        <div class="more-wrap"><button type="button" class="more" id="news-more">더 보기</button></div>
+        <ul class="feed" id="media-list"></ul>
       </section>
 
-      <!-- 4. 위협 동향 -->
-      <section class="panel" id="trend">
+      <!-- 2. 최근 CVE -->
+      <section class="panel" id="cve">
         <div class="panel-head">
-          <h2>위협 동향</h2>
-          <span class="meta">최근 7일 기사 수 · 카테고리별</span>
+          <h2>최근 CVE</h2>
+          <div class="seg" role="tablist" id="cve-tabs"></div>
         </div>
-        <ul class="bars" id="bars"></ul>
+        <p class="meta" id="cve-desc"></p>
+        <ul class="cve-list" id="cve-list"></ul>
       </section>
 
-      <!-- 5. 실제 악용 취약점 -->
+      <!-- 3. 킬 체인 · 제로트러스트 -->
+      <section class="panel" id="frame">
+        <div class="panel-head">
+          <h2>공격 단계 · 제로트러스트 관점</h2>
+          <span class="meta">최근 공지·CVE·보도 기준 · 상자를 누르면 관련 항목</span>
+        </div>
+        <h3 class="sub-h">사이버 킬 체인 <span class="meta">공격자가 거치는 7단계</span></h3>
+        <ol class="chain" id="chain"></ol>
+        <h3 class="sub-h">제로트러스트 5대 영역 <span class="meta">어느 통제를 점검해야 하나</span></h3>
+        <div class="zt" id="zt"></div>
+        <div class="frame-detail hidden" id="frame-detail">
+          <div class="frame-detail-head"><strong id="frame-title"></strong><button type="button" class="link-btn" id="frame-close">닫기</button></div>
+          <ul class="feed compact" id="frame-list"></ul>
+        </div>
+      </section>
+
+      <!-- 4. KEV -->
       <section class="panel" id="kev">
         <div class="panel-head">
           <h2>실제 악용 취약점 (CISA KEV)</h2>
@@ -86,13 +100,10 @@
       </section>
 
       <div class="grid-2">
-        <!-- 6. 패치 일정 -->
         <section class="panel" id="patch">
           <h2>정기 패치 일정</h2>
           <ul class="patch-list" id="patch-list"></ul>
         </section>
-
-        <!-- 8. 클라우드 상태 -->
         <section class="panel" id="cloud">
           <h2>클라우드 상태</h2>
           <ul class="incident-list" id="incident-list"></ul>
@@ -100,7 +111,6 @@
         </section>
       </div>
 
-      <!-- 7. 지원 종료 -->
       <section class="panel" id="infra">
         <div class="panel-head">
           <h2>지원 종료(EOL) 일정</h2>
