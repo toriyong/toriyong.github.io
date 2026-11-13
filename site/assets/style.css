@@ -562,3 +562,5 @@ textarea.note { width: 100%; box-sizing: border-box; font: inherit; line-height:
 .doc-h { font-size: 15.5px; margin: 18px 0 6px; }
 .doc-h:first-of-type { margin-top: 4px; }
 .doc-p { margin: 0 0 10px; line-height: 1.75; overflow-wrap: anywhere; }
+.progress-bar-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.progress-bar-row .more { margin: 0 0 10px; font-size: 13px; padding: 5px 12px; }
