@@ -364,9 +364,6 @@ th, td { padding: 9px 8px; }
 .subnav a:hover { color: var(--text); }
 .subnav a.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
 
-.ev.lock { border-left: 3px solid var(--warn); }
-.ev.inline { display: inline-block; margin: 0 2px 0 0; vertical-align: middle; }
-.cal-legend { margin: 0 0 10px; }
 
 /* 수익률 색: 국내 관례대로 상승 빨강 · 하락 파랑 */
 .up { color: #d6336c; font-weight: 600; }
