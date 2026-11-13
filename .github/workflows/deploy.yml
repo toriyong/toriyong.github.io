@@ -98,6 +98,8 @@ jobs:
 
       # 보안·인프라: 출처별로 독립 수집, 실패한 출처는 건너뛰고 직전 데이터 유지
       - name: Collect security & infra
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}   # 선택: 없으면 공개 한도로 호출
         run: |
           python collect/secinfra/collect.py \
             --out site/security/data/secinfra.json \

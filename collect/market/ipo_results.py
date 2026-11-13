@@ -29,7 +29,6 @@ KST = timezone(timedelta(hours=9))
 # (증권상품시세정보는 이미 /1160100/GetSecuritiesProductInfoService_V2 로 바뀜)
 PRICE_APIS = [u for u in [os.environ.get("DATA_GO_KR_PRICE_URL", "").strip()] if u] + [
     "https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2",
-    "https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo",
     "https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo",
 ]
 _working_api: list[str] = []
@@ -46,7 +45,11 @@ def redact(msg) -> str:
     return s
 
 def price_get(session, params: dict):
-    """동작하는 주소를 한 번 찾으면 계속 그 주소를 쓴다(404·403·라우팅 오류면 다음 후보)."""
+    """동작하는 주소를 한 번 찾으면 계속 그 주소를 쓴다.
+
+    공공데이터포털 오류 코드: 12 = 없는/폐기된 서비스(다음 후보 시도),
+    30 = 등록되지 않은 서비스키(해당 API 활용신청이 안 됐거나 승인·반영 전).
+    """
     last, denied = None, None
     for url in (_working_api or PRICE_APIS):
         try:
@@ -54,20 +57,21 @@ def price_get(session, params: dict):
         except requests.RequestException as e:
             last = e
             continue
-        if r.status_code == 404 or "API not found" in r.text[:300] or "Unexpected errors" in r.text[:300]:
-            last = RuntimeError(f"{url} → {r.status_code}")
+        head = r.text[:400]
+        if r.status_code == 404 or "NO_OPENAPI_SERVICE" in head or "API not found" in head or "Unexpected errors" in head:
+            last = RuntimeError(f"{url.split('1160100/')[-1]} → 없는 서비스")
             continue
-        if r.status_code in (401, 403):            # 이 주소엔 권한이 없을 수 있음 → 다음 후보도 시도
-            denied = r.status_code
-            last = RuntimeError(f"{url} → {r.status_code}")
+        if r.status_code in (401, 403) or "SERVICE_KEY_IS_NOT_REGISTERED" in head:
+            denied = "등록되지 않은 서비스키" if "NOT_REGISTERED" in head else f"HTTP {r.status_code}"
+            last = RuntimeError(f"{url.split('1160100/')[-1]} → {denied}")
             continue
         if not _working_api:
             _working_api.append(url)
             print(f"[price] 시세 API 주소: {url}", file=sys.stderr)
         return r
     if denied:
-        raise RuntimeError(f"HTTP {denied} 권한 없음 — 공공데이터포털에서 '금융위원회_주식시세정보' "
-                           "활용신청 승인 여부와 인증키(Decoding) 활성화(승인 후 1~2시간)를 확인하세요")
+        raise RuntimeError(f"권한 없음({denied}) — 공공데이터포털에서 '금융위원회_주식시세정보' 활용신청이 "
+                           "승인됐는지 확인하세요(승인 후 반영까지 1~2시간)")
     raise RuntimeError(f"시세 API 주소를 찾지 못함: {redact(last)}")
 HISTORY_DAYS = 400
 TRACK = {"d1": 1, "d5": 5, "d30": 30}      # 상장일(D0) 이후 거래일 수
