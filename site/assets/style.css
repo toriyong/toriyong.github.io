@@ -558,3 +558,4 @@ pre.code code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; 
 .unit-nav > :last-child { text-align: right; }
 .unit-list { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
 @media (max-width: 720px) { .unit-nav { grid-template-columns: 1fr; text-align: center; } .unit-nav > :last-child { text-align: center; } }
+textarea.note { width: 100%; box-sizing: border-box; font: inherit; line-height: 1.6; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); resize: vertical; }
