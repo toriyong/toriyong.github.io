@@ -1,9 +1,10 @@
 import re, requests
 s = requests.Session(); s.headers["User-Agent"] = "Mozilla/5.0 toriyong.github.io collector"
+s.get("https://kind.krx.co.kr/main.do?method=loadInitPage&scrnmode=1", timeout=30)
 for u in ["https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain",
           "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain"]:
     t = s.get(u, timeout=30).text
-    print("PAGE", u, len(t))
+    print("PAGE", u, len(t)); print("BODY", t[:400].replace("\n"," "))
     for m in re.finditer(r'<input[^>]+name="([^"]+)"[^>]*?(?:value="([^"]*)")?', t):
         print("  INPUT", m.group(1), "=", m.group(2))
     for m in re.finditer(r"method\s*[:=]\s*['\"]?(\w+)", t):
