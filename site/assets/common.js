@@ -38,8 +38,54 @@
         text: t.label,
       })));
     const header = h("header", { class: "site-header" },
-      h("div", { class: "wrap" }, [h("a", { class: "brand", href: root, text: "toriyong" }), nav]));
+      h("div", { class: "wrap" }, [h("a", { class: "brand", href: root, text: "toriyong" }), nav, renderThemeSwitch()]));
     body.prepend(header);
+  }
+
+  // 밝게 / 어둡게 / 시스템 전환 버튼 (theme.js 가 먼저 로드되어 있어야 함)
+  function renderThemeSwitch() {
+    if (!window.Theme) return null;
+    // 아이콘은 글꼴에 따라 깨지지 않도록 SVG로 그린다 (24x24 기준 path)
+    const ICONS = {
+      light: ["M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z",
+        "M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"],
+      dark: ["M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"],
+      system: ["M3 4h18v12H3z", "M8 20h8M12 16v4"],
+    };
+    const svgIcon = mode => {
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(NS, "svg");
+      for (const [k, v] of Object.entries({ viewBox: "0 0 24 24", width: 14, height: 14, fill: "none",
+        stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", class: "ico", "aria-hidden": "true" })) {
+        svg.setAttribute(k, v);
+      }
+      for (const d of ICONS[mode]) {
+        const path = document.createElementNS(NS, "path");
+        path.setAttribute("d", d);
+        svg.append(path);
+      }
+      return svg;
+    };
+    const OPTIONS = [
+      { mode: "light", label: "밝게" },
+      { mode: "dark", label: "어둡게" },
+      { mode: "system", label: "시스템" },
+    ];
+    const group = h("div", { class: "theme-switch", role: "group", "aria-label": "화면 테마" });
+    const buttons = OPTIONS.map(o => h("button", {
+      type: "button",
+      title: `${o.label} 모드`,
+      "aria-label": `${o.label} 모드`,
+      onclick: () => window.Theme.set(o.mode),
+    }, [svgIcon(o.mode), h("span", { class: "lbl", text: o.label })]));
+    const sync = () => {
+      const cur = window.Theme.get();
+      buttons.forEach((b, i) => b.setAttribute("aria-pressed", String(OPTIONS[i].mode === cur)));
+    };
+    group.append(...buttons);
+    document.addEventListener("themechange", sync);
+    sync();
+    return group;
   }
 
   function renderFooter() {
