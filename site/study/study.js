@@ -84,6 +84,15 @@
     }
     // 구간을 단계 비중대로 나눠 날짜별 과제 만들기
     const tasks = {};    // date → [{id, text, exam}]
+    // 주말(토·일)은 그 주에 공부한 단원을 복습하는 한 묶음으로 만든다 (기출 풀이 기간은 제외)
+    const weekendReview = plan.weekend_review ?? true;
+    const weeks = {};    // `${exam}|${토요일}` → {s, sat, days:[토,일], units:[id]}
+    const weekOf = (s, day) => {
+      const dow = D(day).getUTCDay();
+      const sat = add(day, dow === 0 ? -1 : 6 - dow);
+      const k = `${s.t.exam}|${sat}`;
+      return weeks[k] = weeks[k] || { s, sat, days: [], units: [] };
+    };
     for (const s of segs) {
       const total = diff(s.to, s.from) + 1;
       if (total <= 0) continue;
@@ -91,19 +100,22 @@
       let cursor = 0;
       s.phases.forEach((p, i) => {
         const len = i === s.phases.length - 1 ? total - cursor : Math.round(total * (p.weight || 1) / wsum);
+        const kind = p.kind || (i === 0 ? "concept" : i === s.phases.length - 1 ? "review" : "quiz");
         // 이 단계의 공부일(쉬는 요일 제외)을 먼저 모은 뒤, 단원을 순서대로 고르게 배정
         const days = [];
         for (let k = 0; k < len; k++) {
           const day = add(s.from, cursor + k);
-          if (!restSet.has(D(day).getUTCDay())) days.push(day);
+          const dow = D(day).getUTCDay();
+          if (weekendReview && kind !== "past" && (dow === 0 || dow === 6)) weekOf(s, day).days.push(day);
+          else if (!restSet.has(dow)) days.push(day);
         }
         const units = (content[s.t.exam] || []);
-        const kind = p.kind || (i === 0 ? "concept" : i === s.phases.length - 1 ? "review" : "quiz");
         days.forEach((day, n) => {
           const dow = D(day).getUTCDay();
           const hr = dow === 0 || dow === 6 ? hours.weekend : hours.weekday;
           const u = units.length && kind !== "review" && kind !== "past" ? units[Math.min(units.length - 1, Math.floor(n * units.length / days.length))] : null;
           const no = u ? u.id.split("-")[1] : "";
+          if (u && weekendReview) { const w = weekOf(s, day); if (!w.units.includes(u.id)) w.units.push(u.id); }
           (tasks[day] = tasks[day] || []).push({
             id: `${day}:${s.t.exam}:${s.stage}`, exam: s.t.e.name, cls: `x-${s.t.exam}`, hr,
             text: u ? `${p.name} ${no} ${u.title}` : kind === "past" ? `기출 풀이 ${n + 1}일차` : `${p.name} · 전체 문제 점검`,
@@ -114,6 +126,18 @@
         cursor += len;
       });
     }
+    for (const w of Object.values(weeks)) {
+      if (!w.days.length) continue;            // 주말이 기출 풀이 기간이면 복습 과제 없음
+      const exam = w.s.t.exam, nos = w.units.map(id => id.split("-")[1]);
+      const task = {
+        id: `${w.sat}:${exam}:주간복습`, exam: w.s.t.e.name, cls: `x-${exam} wk`, hr: hours.weekend,
+        text: nos.length ? `주간 복습(토·일) ${nos[0]}${nos.length > 1 ? "~" + nos[nos.length - 1] : ""}` : "주간 복습(토·일) · 전체 문제 점검",
+        href: nos.length ? `unit/?e=${exam}&mode=week&ids=${w.units.join(",")}&w=${w.sat}` : `unit/?e=${exam}&mode=all`,
+      };
+      for (const day of w.days) (tasks[day] = tasks[day] || []).push(task);   // 토·일 같은 과제(체크 하나로 공유)
+    }
+    // 시험별 과제 목록 — 토·일에 같이 걸린 주간 복습은 1건으로 센다
+    const tasksOf = t => [...new Map(Object.values(tasks).flat().filter(x => x.id.includes(`:${t.exam}:`)).map(x => [x.id, x])).values()];
     const isDone = id => store.get(DONE + id) === "1";
     const SHORT = name => ({ 정보보안기사: "보안", 정보처리기사: "정처" }[name] || name.slice(0, 2));
 
@@ -126,7 +150,7 @@
     const examDay = t => first(t.from === "written" ? t.r.written : t.r.practical);
     $("dday").replaceChildren(...(targets.length ? targets.map(t => {
       const next = cards.find(c => c.exam.id === t.e.id);
-      const all = Object.values(tasks).flat().filter(x => x.id.includes(`:${t.exam}:`));
+      const all = tasksOf(t);
       const done = all.filter(x => isDone(x.id)).length;
       return h("div", { class: `dday x-${t.exam}` }, [
         h("div", { class: "dday-head" }, [h("strong", { text: `${t.e.name} ${t.r.round}` }),
@@ -135,7 +159,7 @@
         h("div", { class: "meta", text: `${t.from === "written" ? "필기" : "실기"} ${fmt.md(examDay(t))}` }),
         next ? h("div", { class: "dday-next", text: `다음: ${LABEL[next.kind]} ${fmt.period(next.date, next.end)} (${dday(next.date)})` }) : null,
         h("div", { class: "bar" }, h("span", { class: "bar-fill", "data-w": all.length ? Math.round(done / all.length * 100) : 0 })),
-        h("div", { class: "meta", text: `공부 진행 ${done}/${all.length}일` }),
+        h("div", { class: "meta", text: `공부 진행 ${done}/${all.length}건` }),
       ]);
     }) : [h("p", { class: "meta", text: "목표 시험이 없습니다 (STUDY_PLAN targets)" })]));
     setBars();
@@ -186,7 +210,7 @@
     function render2() {
       // 진행률만 다시 계산
       const rows = targets.map(t => {
-        const all = Object.values(tasks).flat().filter(x => x.id.includes(`:${t.exam}:`));
+        const all = tasksOf(t);
         const past = all.filter(x => x.id.slice(0, 10) <= today);
         const done = all.filter(x => isDone(x.id)).length;
         return h("span", { class: `chip x-${t.exam}` }, [`${t.e.name} `, h("strong", { text: `${done}/${past.length}` }), h("span", { class: "meta", text: " (오늘까지 계획 대비)" })]);
@@ -194,10 +218,10 @@
       $("progress").replaceChildren(...rows);
       document.querySelectorAll(".dday").forEach((card, i) => {
         const t = targets[i]; if (!t) return;
-        const all = Object.values(tasks).flat().filter(x => x.id.includes(`:${t.exam}:`));
+        const all = tasksOf(t);
         const done = all.filter(x => isDone(x.id)).length;
         card.querySelector(".bar-fill").dataset.w = all.length ? Math.round(done / all.length * 100) : 0;
-        card.lastChild.textContent = `공부 진행 ${done}/${all.length}일`;
+        card.lastChild.textContent = `공부 진행 ${done}/${all.length}건`;
       });
       setBars();
     }

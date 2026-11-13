@@ -1,4 +1,4 @@
-// 학습 단원: ?u=단원id (&mode=quiz) · ?e=시험id&mode=all(전체 문제) · 매개변수 없으면 단원 목록
+// 학습 단원: ?u=단원id (&mode=quiz) · ?e=시험id&mode=all(전체 문제) · &mode=week(주간 복습) · 매개변수 없으면 단원 목록
 (async function () {
   "use strict";
   const { h, loadJson } = window.Hub;
@@ -44,6 +44,41 @@
       tools(),
       ...content[exam].map(u => h("section", { class: "panel" }, [
         h("h2", null, h("a", { href: `?u=${u.id}`, text: `${u.id.split("-")[1]} ${u.title}` })),
+        h("ol", { class: "quiz-list" }, (u.quiz || []).map(z => quizItem(z, ++n))),
+      ])),
+    );
+    return;
+  }
+
+  // ---------- 주간 복습(토·일 한 묶음): 그 주에 공부한 단원의 핵심 정리 + 문제
+  if (q.get("mode") === "week" && content[q.get("e")]) {
+    const exam = q.get("e");
+    const ids = (q.get("ids") || "").split(",");
+    const units = content[exam].filter(x => ids.includes(x.id));
+    const sat = /^\d{4}-\d{2}-\d{2}$/.test(q.get("w") || "") ? q.get("w") : "";
+    const key = `study:week:${exam}:${sat}`;
+    let n = 0;
+    document.title = `${NAME[exam]} 주간 복습 · toriyong`;
+    const note = h("textarea", { class: "note", rows: 5, placeholder: "예) Snort 옵션 순서가 헷갈림, IPsec 터널/전송 모드 다시 보기 …" });
+    note.value = store.get(key) || "";
+    note.addEventListener("input", () => store.set(key, note.value));
+    box.replaceChildren(
+      h("p", { class: "meta", text: `${NAME[exam] || exam}${sat ? " · " + sat + " 주말" : ""}` }),
+      h("h1", { text: `주간 복습 · ${units.length}개 단원` }),
+      h("section", { class: "panel" }, [h("h2", { text: "토·일 이틀 동안 할 일" }), h("ol", { class: "points" }, [
+        "토요일: 자료를 보지 않고 아래 문제를 단원 순서대로 끝까지 풀고, 틀리거나 망설인 문제를 메모에 적는다.",
+        "일요일: 메모에 적은 주제의 핵심 정리와 설명(단원 제목을 누르면 열림)을 다시 읽고, 틀린 문제만 한 번 더 푼다.",
+        "다 끝나면 캘린더로 돌아가 '주간 복습'을 체크한다(토·일 한 번에 체크됨).",
+      ].map(t => h("li", { text: t })))]),
+      h("section", { class: "panel" }, [
+        h("h2", { text: "헷갈린 것 메모" }),
+        h("p", { class: "meta", text: "이 브라우저에만 저장됩니다(다른 기기와 동기화되지 않음)." }),
+        note,
+      ]),
+      tools(),
+      ...units.map(u => h("section", { class: "panel" }, [
+        h("h2", null, h("a", { href: `?u=${u.id}`, text: `${u.id.split("-")[1]} ${u.title}` })),
+        h("details", null, [h("summary", { text: "핵심 정리 펼치기" }), h("ul", { class: "points" }, u.points.map(p => h("li", { text: p })))]),
         h("ol", { class: "quiz-list" }, (u.quiz || []).map(z => quizItem(z, ++n))),
       ])),
     );
