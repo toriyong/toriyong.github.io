@@ -183,9 +183,20 @@ def target_summary(targets: list[dict], price: int | None) -> dict:
         rows.append({"broker": t.get("broker"), "price": p, "date": d or None,
                      "attain": round(price / p * 100, 1) if price else None})
     rows.sort(key=lambda r: r["date"] or "", reverse=True)
-    recent = [r["price"] for r in rows if (r["date"] or "") >= since] or [r["price"] for r in rows]
-    avg_t = round(mean(recent)) if recent else None
+    # 컨센서스 평균: 최근 TARGET_DAYS 일 안의 값만, 증권사별로 최신 1건만 반영한다.
+    # (같은 증권사가 분기마다 내는 리포트를 모두 더하면 그 증권사 비중이 커진다)
+    fresh = [r for r in rows if (r["date"] or "") >= since] or rows
+    latest: dict[str, dict] = {}
+    for r in fresh:                                   # rows 는 최신순이므로 처음 만난 것이 최신
+        latest.setdefault((r["broker"] or "").strip() or f"_{len(latest)}", r)
+    used = list(latest.values())
+    prices = [r["price"] for r in used]
+    avg_t = round(mean(prices)) if prices else None
+    for r in rows:                                    # 평균에 쓰인 건을 화면에서 구분
+        r["used"] = r in used
     return {"targets": rows, "avg_target": avg_t,
+            "target_brokers": len(prices), "target_min": min(prices) if prices else None,
+            "target_max": max(prices) if prices else None,
             "attain": round(price / avg_t * 100, 1) if price and avg_t else None,
             "upside": round((avg_t / price - 1) * 100, 1) if price and avg_t else None}
 
