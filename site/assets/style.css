@@ -399,3 +399,84 @@ ul.plain { list-style: none; margin: 0; padding: 0; font-size: 13px; }
 .feed-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 12px; }
 .feed-title { display: block; color: var(--text); line-height: 1.45; overflow-wrap: anywhere; }
 .feed.compact .feed-title { font-size: 14px; }
+
+/* ---------------- 보안 탭 개편: 공식 공지·CVE·킬 체인·제로트러스트 ---------------- */
+.stats.stats-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.sub-h { font-size: 15px; margin: 6px 0 10px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+
+.feed { list-style: none; margin: 0; padding: 0; }
+.feed-item { padding: 11px 0; border-top: 1px solid var(--line); }
+.feed-item:first-child { border-top: 0; padding-top: 2px; }
+.feed-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px; }
+.feed-title { display: block; color: var(--text); font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
+.feed.compact .feed-title { font-weight: 500; font-size: 14px; }
+.outlets { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+.org { display: inline-block; padding: 1px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid var(--line); }
+.org-kisa { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.org-fsi { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.org-cisa { background: var(--neutral-soft); color: var(--text); }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { background: transparent; border: 0; color: var(--muted); padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+.cve-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.cve-item { display: grid; grid-template-columns: 52px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); align-items: start; }
+.cve-item:first-child { border-top: 0; }
+.score { display: grid; place-items: center; height: 40px; border-radius: 8px; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+.score.sev-critical { background: var(--bad-soft); color: var(--bad); }
+.score.sev-high { background: var(--warn-soft); color: var(--warn); }
+.score.sev-medium { background: var(--accent-soft); color: var(--accent); }
+.score.sev-info { background: var(--neutral-soft); color: var(--muted); }
+.cve-main { min-width: 0; }
+.cve-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cve-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; font-weight: 700; }
+.cve-title { font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+.cve-sum { font-size: 13px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+
+/* 킬 체인: 7단계 가로 흐름 */
+.chain { list-style: none; margin: 0 0 18px; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; counter-reset: none; }
+.chain li { position: relative; min-width: 0; }
+.chain li:not(:last-child)::after { content: "›"; position: absolute; right: -8px; top: 50%; transform: translate(50%, -50%); color: var(--muted); font-size: 18px; z-index: 1; }
+.chain-step { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.chain-step:hover, .zt-tile:hover { border-color: var(--accent); }
+.chain-step.has { background: var(--warn-soft); border-color: transparent; }
+.chain-step.on, .zt-tile.on { outline: 2px solid var(--accent); outline-offset: -2px; }
+.chain-no { font-size: 11px; color: var(--muted); font-weight: 700; }
+.chain-step strong { font-size: 14px; }
+.chain-count { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chain-step.has .chain-count { color: var(--warn); }
+.chain-desc { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+
+/* 제로트러스트 5대 영역 */
+.zt { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.zt-tile { display: flex; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.zt-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.zt-count { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); }
+.zt-tile.has .zt-count { color: var(--accent); }
+.zt-check { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.frame-detail { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--bg); }
+.frame-detail-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.link-btn { background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 13px; padding: 4px; }
+
+@media (max-width: 1000px) {
+  .stats.stats-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chain { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .chain li:nth-child(4)::after { content: none; }
+  .zt { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .stats.stats-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chain { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .chain li::after { content: none !important; }
+  .chain-step { display: grid; grid-template-columns: 22px auto 1fr auto; align-items: center; gap: 8px; padding: 10px 12px; }
+  .chain-desc { grid-column: 2 / -1; }
+  .chain-count { font-size: 15px; justify-self: end; grid-column: 4; grid-row: 1; }
+  .zt { grid-template-columns: minmax(0, 1fr); }
+  .seg { width: 100%; }
+  .seg button { flex: 1; padding: 8px 6px; }
+  .cve-item { grid-template-columns: 46px 1fr; gap: 10px; }
+}
+.feed-sum { margin: 3px 0 0; font-size: 13px; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
