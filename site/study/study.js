@@ -117,7 +117,7 @@
           const no = u ? u.id.split("-")[1] : "";
           if (u && weekendReview) { const w = weekOf(s, day); if (!w.units.includes(u.id)) w.units.push(u.id); }
           (tasks[day] = tasks[day] || []).push({
-            id: `${day}:${s.t.exam}:${s.stage}`, exam: s.t.e.name, cls: `x-${s.t.exam}`, hr,
+            id: `${day}:${s.t.exam}:${s.stage}`, unit: u ? u.id : "", exam: s.t.e.name, cls: `x-${s.t.exam}`, hr,
             text: u ? `${p.name} ${no} ${u.title}` : kind === "past" ? `기출 풀이 ${n + 1}일차` : `${p.name} · 전체 문제 점검`,
             href: u ? `unit/?u=${u.id}${kind === "quiz" ? "&mode=quiz" : ""}`
               : kind === "past" ? `unit/?e=${s.t.exam}&mode=past&d=${n + 1}&of=${days.length}&date=${day}` : `unit/?e=${s.t.exam}&mode=all`,
@@ -130,7 +130,7 @@
       if (!w.days.length) continue;            // 주말이 기출 풀이 기간이면 복습 과제 없음
       const exam = w.s.t.exam, nos = w.units.map(id => id.split("-")[1]);
       const task = {
-        id: `${w.sat}:${exam}:주간복습`, exam: w.s.t.e.name, cls: `x-${exam} wk`, hr: hours.weekend,
+        id: `${w.sat}:${exam}:주간복습`, unit: "", exam: w.s.t.e.name, cls: `x-${exam} wk`, hr: hours.weekend,
         text: nos.length ? `주간 복습(토·일) ${nos[0]}${nos.length > 1 ? "~" + nos[nos.length - 1] : ""}` : "주간 복습(토·일) · 전체 문제 점검",
         href: nos.length ? `unit/?e=${exam}&mode=week&ids=${w.units.join(",")}&w=${w.sat}` : `unit/?e=${exam}&mode=all`,
       };
@@ -138,7 +138,9 @@
     }
     // 시험별 과제 목록 — 토·일에 같이 걸린 주간 복습은 1건으로 센다
     const tasksOf = t => [...new Map(Object.values(tasks).flat().filter(x => x.id.includes(`:${t.exam}:`)).map(x => [x.id, x])).values()];
-    const isDone = id => store.get(DONE + id) === "1";
+    // 단원 과제는 단원 페이지의 '학습 완료'와 같은 값을 쓴다(한쪽에서 체크하면 양쪽에 반영)
+    const keyOf = t => (t.unit ? `study:unit:${t.unit}` : DONE + t.id);
+    const isDone = t => store.get(keyOf(t)) === "1";
     const SHORT = name => ({ 정보보안기사: "보안", 정보처리기사: "정처" }[name] || name.slice(0, 2));
 
     // ---------- D-day 카드: 목표 시험의 다음 일정
@@ -151,7 +153,7 @@
     $("dday").replaceChildren(...(targets.length ? targets.map(t => {
       const next = cards.find(c => c.exam.id === t.e.id);
       const all = tasksOf(t);
-      const done = all.filter(x => isDone(x.id)).length;
+      const done = all.filter(isDone).length;
       return h("div", { class: `dday x-${t.exam}` }, [
         h("div", { class: "dday-head" }, [h("strong", { text: `${t.e.name} ${t.r.round}` }),
           t.r.estimated ? h("span", { class: "badge sev-medium", text: "임시" }) : null]),
@@ -177,10 +179,10 @@
     function cellChildren(key) {
       return [
         ...(evByDay[key] || []).map(ev => h("span", { class: `ev exam x-${ev.exam.id}`, title: `${ev.exam.name} ${ev.round.round} ${LABEL[ev.kind]}`, text: evText(ev) })),
-        ...(tasks[key] || []).map(t => h("span", { class: `task ${t.cls}${isDone(t.id) ? " done" : ""}` }, [
-          h("button", { type: "button", class: "chk", title: "완료 체크", "aria-pressed": String(isDone(t.id)), "aria-label": `${t.text} 완료 체크`,
-            onclick: () => { isDone(t.id) ? store.del(DONE + t.id) : store.set(DONE + t.id, "1"); renderCal(); render2(); },
-            text: isDone(t.id) ? "✔" : "○" }),
+        ...(tasks[key] || []).map(t => h("span", { class: `task ${t.cls}${isDone(t) ? " done" : ""}` }, [
+          h("button", { type: "button", class: "chk", title: "완료 체크", "aria-pressed": String(isDone(t)), "aria-label": `${t.text} 완료 체크`,
+            onclick: () => { isDone(t) ? store.del(keyOf(t)) : store.set(keyOf(t), "1"); renderCal(); render2(); },
+            text: isDone(t) ? "✔" : "○" }),
           h("a", { class: "task-link", href: t.href, title: `${t.exam} ${t.text} (${t.hr}시간) — 눌러서 공부하기`, text: `[${SHORT(t.exam)}] ${t.text}` }),
         ])),
       ];
@@ -212,14 +214,14 @@
       const rows = targets.map(t => {
         const all = tasksOf(t);
         const past = all.filter(x => x.id.slice(0, 10) <= today);
-        const done = all.filter(x => isDone(x.id)).length;
+        const done = all.filter(isDone).length;
         return h("span", { class: `chip x-${t.exam}` }, [`${t.e.name} `, h("strong", { text: `${done}/${past.length}` }), h("span", { class: "meta", text: " (오늘까지 계획 대비)" })]);
       });
       $("progress").replaceChildren(...rows);
       document.querySelectorAll(".dday").forEach((card, i) => {
         const t = targets[i]; if (!t) return;
         const all = tasksOf(t);
-        const done = all.filter(x => isDone(x.id)).length;
+        const done = all.filter(isDone).length;
         card.querySelector(".bar-fill").dataset.w = all.length ? Math.round(done / all.length * 100) : 0;
         card.lastChild.textContent = `공부 진행 ${done}/${all.length}건`;
       });
