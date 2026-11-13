@@ -431,3 +431,18 @@ ul.plain { list-style: none; margin: 0; padding: 0; font-size: 13px; }
   .agenda-evs .task { font-size: 14px; padding: 6px 10px; white-space: normal; }
   .dday-big { font-size: 26px; }
 }
+/* 지금 청약할 종목 */
+.next-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.next-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 8px; }
+.next-card.live { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.next-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.next-name { font-size: 17px; color: var(--text); }
+.next-when { font-weight: 800; color: var(--muted); white-space: nowrap; }
+.next-when.live { color: var(--bad); }
+.next-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.kvs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+.kv { display: flex; flex-direction: column; min-width: 0; }
+.kv .k { font-size: 11.5px; color: var(--muted); }
+.kv .v { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.kv.hl .v { color: var(--accent); }
+.next-link { font-size: 13px; justify-self: end; }

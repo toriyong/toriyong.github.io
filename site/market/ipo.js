@@ -87,7 +87,47 @@
       .map(([s, label]) => ({ id: "s-" + s, label, pred: i => i.status === s, head: () => label })),
     ...GRADE_ORDER.map(g => ({ id: "g-" + g, grade: g, pred: i => i.grade === g, head: () => GRADE[g] })),
   ];
-  let openChip = null;
+  // ---------- 청약 카드 (요약의 '청약 중'·'청약 예정'을 펼치면 표시)
+  function won(v) { return (v === null || v === undefined) ? "–" : `${fmt.num(v)}원`; }
+  function dleft(d) { return Math.round((new Date(d + "T00:00:00Z") - new Date(today + "T00:00:00Z")) / 864e5); }
+  function subCard(it) {
+    const price = it.offer_price || (it.band ? it.band[1] : it.price);
+    const minQ = it.min_shares;
+    const rate = it.margin_rate ?? 50;
+    const deposit = minQ && price ? Math.round(minQ * price * rate / 100) : null;
+    const end = it.sub_end || it.sub_start;
+    const when = it.status === "subscribing"
+      ? (dleft(end) === 0 ? "오늘 마감" : `마감 D-${dleft(end)}`)
+      : `D-${dleft(it.sub_start)}`;
+    const row = (k, v, cls) => h("div", { class: "kv" + (cls ? " " + cls : "") }, [h("span", { class: "k", text: k }), h("span", { class: "v" }, v)]);
+    return h("article", { class: "next-card" + (it.status === "subscribing" ? " live" : "") }, [
+      h("div", { class: "next-head" }, [
+        h("a", { href: "#row-" + it.corp_code }, h("strong", { class: "next-name", text: it.corp_name })),
+        h("span", { class: "next-when" + (it.status === "subscribing" ? " live" : ""), text: when }),
+      ]),
+      h("div", { class: "next-badges" }, [
+        h("span", { class: "tag", text: STATUS[it.status] }),
+        it.subscribe ? h("span", { class: `badge sub-${it.subscribe.level}`, text: `청약 판단 ${it.subscribe.label}` }) : h("span", { class: "badge g-pending", text: "수요예측 전" }),
+        badge(it.grade),
+      ]),
+      h("div", { class: "kvs" }, [
+        row("청약일", fmt.period(it.sub_start, it.sub_end)),
+        row("공모가", it.offer_price ? `${won(it.offer_price)} (확정)` : it.band ? `희망 ${fmt.num(it.band[0])}~${fmt.num(it.band[1])}원` : won(it.price)),
+        row("최소수량(균등)", minQ ? `${fmt.num(minQ)}주` : "원문 확인"),
+        row("최소 증거금", deposit ? `${won(deposit)}${it.offer_price ? "" : " (상단 기준)"}` : "–", "hl"),
+        row("주관사", (it.underwriters || []).join(", ") || "–"),
+        row("기관 경쟁률", fmt.ratio(it.demand_ratio)),
+        row("확약률 · 유통", `${fmt.pct(it.lockup_ratio)} · ${fmt.pct(it.float_ratio)}`),
+        row("최고 한도", it.max_shares ? `${fmt.num(it.max_shares)}주` : "–"),
+        row("환불·납입일", it.pay_date ? fmt.md(it.pay_date) : "–"),
+      ]),
+      h("a", { class: "next-link", href: it.dart_url, target: "_blank", rel: "noopener noreferrer", text: "신고서 원문 ↗" }),
+    ]);
+  }
+
+  // 증시 탭을 열면 '청약 중'(없으면 '청약 예정')을 바로 펼쳐 둔다
+  let openChip = count(i => i.status === "subscribing") ? "s-subscribing"
+    : count(i => i.status === "upcoming") ? "s-upcoming" : null;
   function renderSummary() {
     $("summary").replaceChildren(...SUMMARY.map(c => {
       const n = count(c.pred);
@@ -102,6 +142,15 @@
     if (!c) { box.classList.add("hidden"); box.replaceChildren(); return; }
     const list = items.filter(c.pred);
     box.classList.remove("hidden");
+    if (c.id === "s-subscribing" || c.id === "s-upcoming") {
+      const sorted = list.slice().sort((x, y) => (x.sub_start || "9").localeCompare(y.sub_start || "9"));
+      box.replaceChildren(
+        h("div", { class: "sd-head" }, h("strong", { text: `${c.head()} ${list.length}건 · 청약일 빠른 순` })),
+        h("div", { class: "next-grid" }, sorted.map(subCard)),
+        h("p", { class: "meta", text: "최소 증거금 = 최소 청약수량(균등 배정 최소) × 공모가 × 증거금률. 공모가 확정 전에는 희망밴드 상단 기준. 청약 조건은 증권사별로 다를 수 있으니 원문을 확인하세요." }),
+      );
+      return;
+    }
     box.replaceChildren(
       h("div", { class: "sd-head" }, h("strong", { text: `${c.head()} ${list.length}건` })),
       h("ul", { class: "sd-list" }, list.map(it => h("li", null, [
@@ -121,6 +170,7 @@
     );
   }
   renderSummary();
+
   $("window-note").textContent =
     `오늘부터 영업일 ${WINDOW_DAYS}일 안(~${fmt.md(horizon)})에 청약하는 종목과 청약 중·상장 대기 종목, 최근 ${LISTED_KEEP_DAYS}일 상장 종목 기준 · 스팩 제외`;
 

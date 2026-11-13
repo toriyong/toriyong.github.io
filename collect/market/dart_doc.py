@@ -24,7 +24,7 @@ import zipfile
 NUM = r"[\d,]+(?:\.\d+)?"
 
 # 해석 규칙이 바뀌면 올린다 → 캐시된 이전 해석값을 버리고 다시 받는다
-PARSER_VERSION = 2
+PARSER_VERSION = 3   # 3: 일반청약 최소수량·한도·증거금률·균등 물량 추가
 
 
 def to_num(s: str | None) -> float | None:
@@ -189,6 +189,55 @@ def parse_secondary_ratio(text: str) -> float | None:
     return None
 
 
+def _int(s: str | None) -> int | None:
+    try:
+        return int(str(s).replace(",", "")) if s else None
+    except ValueError:
+        return None
+
+
+def parse_retail(text: str) -> dict:
+    """일반청약자 청약 조건: 최소 청약수량(=균등 최소), 최고 청약한도, 증거금률, 배정·균등 물량.
+
+    - '청약주식수 | 청약단위' 표의 첫 행 'N주 이상 ~' → 최소 청약수량
+    - '일반청약자 배정물량 | 최고청약한도 | 청약증거금률' 표의 행 → 배정물량·한도·증거금률(주관사 여러 곳이면 한도는 최대값)
+    - '균등방식 (최소)배정 예정물량은 N주' → 균등 물량
+    마지막(정정 후) 등장을 우선한다.
+    """
+    out: dict = {}
+    mins = re.findall(r"청약주식수\s*\t\s*청약\s*단위\s*\n\s*(\d[\d,]*)\s*주\s*이상", text)
+    if mins:
+        out["min_shares"] = _int(mins[-1])
+    heads = [m.end() for m in re.finditer(r"배정\s*물량\s*\t[^\n]*청약\s*한도[^\n]*\t[^\n]*증거금\s*율|배정\s*물량\s*\t[^\n]*청약\s*한도[^\n]*\t[^\n]*증거금\s*률", text)]
+    if heads:
+        block = text[heads[-1]: heads[-1] + 600]
+        alloc, limits, rates = [], [], []
+        for line in block.split("\n")[1:8]:
+            cells = [c.strip() for c in line.split("\t")]
+            if len(cells) < 4 or not re.search(r"\d", cells[1] or ""):
+                if alloc:
+                    break
+                continue
+            a, l = _int(re.sub(r"[^\d,]", "", cells[1])), _int(re.sub(r"[^\d,]", "", cells[2]))
+            r = re.search(r"(\d+(?:\.\d+)?)\s*%", cells[3])
+            if a:
+                alloc.append(a)
+            if l and l >= 10:                     # '1주'(기관 청약단위) 같은 값은 한도가 아님
+                limits.append(l)
+            if r:
+                rates.append(float(r.group(1)))
+        if alloc:
+            out["retail_shares"] = sum(alloc) if len(alloc) > 1 and "합계" not in block[:200] else alloc[0]
+        if limits:
+            out["max_shares"] = max(limits)
+        if rates:
+            out["margin_rate"] = rates[0]
+    eq = re.findall(r"균등\s*방식\s*(?:최소\s*)?(?:배정의\s*최소\s*)?배정\s*예정\s*물량[은는]?\s*(\d[\d,]*)\s*주", text)
+    if eq:
+        out["equal_shares"] = _int(eq[-1])
+    return out
+
+
 def parse_offering(text: str) -> dict:
     price = parse_offer_price(text)
     band = parse_band(text)
@@ -200,5 +249,6 @@ def parse_offering(text: str) -> dict:
         "lockup_ratio": parse_lockup_ratio(text, hint),
         "float_ratio": parse_float_ratio(text),
         "secondary_ratio": parse_secondary_ratio(text),
+        **parse_retail(text),
     }
     return {k: v for k, v in out.items() if v is not None}
