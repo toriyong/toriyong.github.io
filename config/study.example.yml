@@ -8,7 +8,7 @@ rest_days: [sun]             # 쉬는 요일: mon tue wed thu fri sat sun
 # 목표 시험: exams.yml 의 id · round, 응시 단계(written=필기부터, practical=실기만)
 targets:
   - { exam: eis, round: 2027-1, from: practical }
-  - { exam: eip, round: 2027-1, from: written }
+  - { exam: eip, round: 2027-1, from: practical }
 
 # 단계별 비중(기간 배분) — 합이 1이 아니어도 비율로 나눔
 phases:
