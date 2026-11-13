@@ -33,7 +33,7 @@ jobs:
 
       - name: Configure Pages
         id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       # 수집 실패 시 화면이 비지 않도록, 현재 배포된 원천 데이터를 먼저 받아 둔다
       - name: Fetch previous data
