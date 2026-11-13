@@ -49,6 +49,7 @@ jobs:
           curl -fsS "$base/market/data/results.json" -o /tmp/prev_results.json && echo "prev results ok" || echo "no prev results"
           curl -fsS "$base/market/data/watchlist.json" -o /tmp/prev_watchlist.json && echo "prev watchlist ok" || echo "no prev watchlist"
           curl -fsS "$base/market/stocks.json" -o /tmp/prev_stocks.json && echo "prev stocks ok" || echo "no prev stocks"
+          curl -fsS "$base/market/data/indices.json" -o /tmp/prev_indices.json && echo "prev indices ok" || echo "no prev indices"
 
       # 본문 다운로드는 스크립트 안에서 시간 예산(기본 300초)으로 끊는다.
       # 그래도 멈추면 이 단계만 9분에 종료하고, 아래 단계에서 직전 데이터로 대체한다.
@@ -84,6 +85,16 @@ jobs:
             --out site/market/data/results.json \
             --prev /tmp/prev_results.json || echo "성적표 수집 실패 → 직전 데이터 사용"
           [ -s site/market/data/results.json ] || cp /tmp/prev_results.json site/market/data/results.json 2>/dev/null || true
+
+      - name: Market indices (주요 지수)
+        timeout-minutes: 5
+        continue-on-error: true
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          cp /tmp/prev_indices.json site/market/data/indices.json 2>/dev/null || true
+          python collect/market/indices.py --out site/market/data/indices.json || echo "지수 수집 실패 → 직전 데이터 사용"
 
       - name: Research targets (증권사 목표가)
         timeout-minutes: 8
