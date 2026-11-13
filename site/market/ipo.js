@@ -44,8 +44,18 @@
   const keyDate = i => i.sub_start || i.listing_date || i.rcept_dt || "9999-12-31";
   const isLater = i => i.status === "upcoming" && !!i.sub_start && i.sub_start > horizon;
   const isOldListed = i => i.status === "listed" && (i.listing_date || i.sub_end || "") < listedFrom;
+  // 상태는 수집 시각이 아니라 '보는 시각'의 오늘 날짜로 다시 계산한다
+  // (process/market/grade_ipo.py status_of 와 같은 규칙 → 자정이 지나 새로고침하면 바로 반영)
+  const statusOf = i => {
+    const s = i.sub_start, e = i.sub_end || i.sub_start, lst = i.listing_date;
+    if (lst && lst < today) return "listed";
+    if (s && today < s) return "upcoming";
+    if (s && e && s <= today && today <= e) return "subscribing";
+    if (e && e < today) return "awaiting_listing";
+    return i.status || "unknown";
+  };
   const all = (data.items || []).filter(i => i.grade !== "spac" && !i.is_spac)   // 스팩 제외
-    .slice().sort((a, b) => keyDate(a).localeCompare(keyDate(b)));
+    .map(i => ({ ...i, status: statusOf(i) })).sort((a, b) => keyDate(a).localeCompare(keyDate(b)));
   const items = all.filter(i => !isLater(i) && !isOldListed(i));   // 요약·목록 기본 대상
   const later = all.filter(isLater);
   let showLater = false;
