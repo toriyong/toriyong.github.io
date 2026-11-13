@@ -1,0 +1,44 @@
+name: 관심종목 등록·수정
+description: 관심종목 추가/삭제, 증권사 목표가 입력 → 자동으로 PR 생성 (저장소 소유자만 처리)
+title: "[관심종목] "
+labels: ["watchlist"]
+body:
+  - type: dropdown
+    id: action
+    attributes:
+      label: 작업
+      options:
+        - 종목 추가
+        - 목표가 추가
+        - 종목 삭제
+    validations:
+      required: true
+  - type: input
+    id: name
+    attributes:
+      label: 종목명
+      description: 예) 삼성전자
+      placeholder: 삼성전자
+    validations:
+      required: true
+  - type: input
+    id: code
+    attributes:
+      label: 종목코드 (선택)
+      description: 6자리. 비우면 종목명으로 자동 검색합니다.
+      placeholder: "005930"
+  - type: input
+    id: broker
+    attributes:
+      label: 증권사 (목표가 입력 시)
+      placeholder: 예) 한국투자증권
+  - type: input
+    id: target
+    attributes:
+      label: 목표가(원) (목표가 입력 시)
+      placeholder: "100000"
+  - type: input
+    id: date
+    attributes:
+      label: 목표가 발표일 (선택, 비우면 오늘)
+      placeholder: "2026-11-13"

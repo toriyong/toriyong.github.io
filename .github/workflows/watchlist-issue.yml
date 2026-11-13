@@ -1,0 +1,75 @@
+# 관심종목 이슈(폼) → config/watchlist.yml 수정 PR 자동 생성
+# - 저장소 소유자가 연 이슈만 처리(공개 저장소라 다른 사람의 이슈는 무시하고 닫음)
+# - 바로 반영하지 않고 PR 로 올려 검토 후 머지하는 기존 방식 유지
+name: Watchlist from issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: watchlist-issue
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: contains(github.event.issue.labels.*.name, 'watchlist')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Only repository owner
+        if: github.event.issue.user.login != github.repository_owner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUM: ${{ github.event.issue.number }}
+        run: |
+          gh issue close "$NUM" -R "$GITHUB_REPOSITORY" -c "관심종목 등록은 저장소 소유자만 할 수 있습니다." --reason "not planned"
+          exit 1
+
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Update watchlist.yml
+        id: upd
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          set -o pipefail
+          python tools/watchlist_issue.py --config config/watchlist.yml | tail -1 > /tmp/result.json
+          echo "summary=$(python -c 'import json;print(json.load(open("/tmp/result.json"))["summary"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUM: ${{ github.event.issue.number }}
+          SUMMARY: ${{ steps.upd.outputs.summary }}
+        run: |
+          branch="watchlist/issue-$NUM"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add config/watchlist.yml
+          git commit -m "watchlist: $SUMMARY (#$NUM)"
+          git push -u origin "$branch"
+          url=$(gh pr create -R "$GITHUB_REPOSITORY" --base main --head "$branch" \
+                --title "관심종목: $SUMMARY" \
+                --body "이슈 #$NUM 의 요청을 config/watchlist.yml 에 반영했습니다. 확인 후 머지하면 다음 배포부터 관심종목 페이지에 표시됩니다. Closes #$NUM")
+          gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" -b "PR을 만들었습니다: $url — 머지하면 반영됩니다."
+
+      - name: Report failure
+        if: failure() && github.event.issue.user.login == github.repository_owner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUM: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" -b "처리하지 못했습니다. Actions 로그를 확인해 주세요(종목명 오타, 목표가 형식, 종목코드 미검색 등): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

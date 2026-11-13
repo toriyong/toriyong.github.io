@@ -36,7 +36,7 @@
       h("td", { class: "num", "data-label": "상승 여력" }, pctSpan(s.upside, true)),
       h("td", { "data-label": "목표가" }, (s.targets || []).length
         ? h("ul", { class: "plain" }, s.targets.slice(0, 4).map(t => h("li", { text: `${t.broker || "–"} ${fmt.num(t.price)}원 · ${fmt.md(t.date)}` })))
-        : h("span", { class: "meta", text: "config/watchlist.yml 에 입력" })),
+        : h("a", { class: "meta", href: `https://github.com/toriyong/toriyong.github.io/issues/new?template=watchlist.yml&action=${encodeURIComponent("목표가 추가")}&name=${encodeURIComponent(s.name)}&code=${s.stock_code}`, target: "_blank", rel: "noopener noreferrer", text: "목표가 입력 ↗" })),
     ]);
   }) : [h("tr", null, h("td", { colspan: 6, class: "empty", text: "관심종목 없음" }))]));
   // 인라인 style 속성 대신 CSSOM으로 막대 길이 지정 (CSP)
