@@ -27,6 +27,9 @@ from datetime import date, datetime, timedelta, timezone
 
 import requests
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import dart_doc  # noqa: E402  신고서 본문 해석
+
 KST = timezone(timedelta(hours=9))
 API = "https://opendart.fss.or.kr/api"
 DETAIL_TY_EQUITY = "C001"      # 발행공시 > 증권신고(지분증권)
@@ -130,19 +133,37 @@ def search_equity_filings(session, key: str, days: int) -> list[dict]:
 
 
 def latest_ipo_filings(rows: list[dict]) -> list[dict]:
-    """비상장사(E)의 증권신고서만 남기고, 회사별 최신 접수번호 1건으로 줄인다."""
+    """비상장사(E)의 증권신고서만 남기고, 회사별 최신 접수번호 1건으로 줄인다.
+    [발행조건확정] 신고서가 있으면 그 접수번호를 confirm_rcept_no 로 함께 기록(수요예측 결과가 들어 있음)."""
     latest: dict[str, dict] = {}
+    confirm: dict[str, str] = {}
     for r in rows:
         if r.get("corp_cls") != "E":
             continue
-        if "증권신고서" not in (r.get("report_nm") or ""):
+        name = r.get("report_nm") or ""
+        if "증권신고서" not in name:
             continue
         code = r.get("corp_code")
         if not code:
             continue
         if code not in latest or r.get("rcept_no", "") > latest[code].get("rcept_no", ""):
             latest[code] = r
-    return list(latest.values())
+        if "발행조건확정" in name and r.get("rcept_no", "") > confirm.get(code, ""):
+            confirm[code] = r["rcept_no"]
+    out = []
+    for code, r in latest.items():
+        out.append({**r, "confirm_rcept_no": confirm.get(code)})
+    return out
+
+
+def fetch_document_values(session, key: str, rcept_no: str) -> dict:
+    """공시서류 원본(document.xml, ZIP)을 받아 공모 핵심 수치를 해석한다."""
+    time.sleep(REQUEST_GAP_SEC)
+    resp = session.get(f"{API}/document.xml", params={"crtfc_key": key, "rcept_no": rcept_no}, timeout=60)
+    resp.raise_for_status()
+    if not resp.content.startswith(b"PK"):           # ZIP이 아니면 오류 응답(XML/JSON)
+        raise DartError(f"document.xml 응답이 ZIP이 아님: {resp.content[:120]!r}")
+    return dart_doc.parse_offering(dart_doc.zip_to_text(resp.content, rcept_no))
 
 
 _logged_shape = False
@@ -194,18 +215,38 @@ def fetch_detail(session, key: str, filing: dict, days: int) -> dict:
     }
 
 
-def collect(key: str, days: int) -> list[dict]:
+def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[dict]:
     session = requests.Session()
     session.headers["User-Agent"] = "toriyong.github.io data collector"
     filings = latest_ipo_filings(search_equity_filings(session, key, days))
     log(f"IPO 후보 공시 {len(filings)}건")
+    cache = {p.get("corp_code"): p for p in (prev_items or [])}
     items = []
+    parsed_n = cached_n = 0
     for f in filings:
         try:
             detail = fetch_detail(session, key, f, days)
         except (DartError, requests.RequestException) as e:
             log(f"상세 조회 실패 {f.get('corp_name')}: {e}")
             detail = {}
+
+        # 신고서 본문 해석: 발행조건확정 신고서가 있으면 그것, 없으면 최신 신고서
+        doc_rcept = f.get("confirm_rcept_no") or f.get("rcept_no")
+        prev = cache.get(f.get("corp_code")) or {}
+        doc_vals: dict = {}
+        if prev.get("doc_rcept_no") == doc_rcept and isinstance(prev.get("doc"), dict):
+            doc_vals = prev["doc"]                      # 같은 문서는 다시 받지 않음
+            cached_n += 1
+        elif doc_rcept:
+            try:
+                doc_vals = fetch_document_values(session, key, doc_rcept)
+                parsed_n += 1
+            except (DartError, requests.RequestException, ValueError, OSError) as e:
+                log(f"본문 해석 실패 {f.get('corp_name')}: {e}")
+        confirmed = bool(f.get("confirm_rcept_no"))
+        if not confirmed:                               # 확정 전에는 공모가 확정값을 쓰지 않음
+            doc_vals = {k: v for k, v in doc_vals.items() if k not in ("offer_price", "demand_ratio", "lockup_ratio")}
+
         name = f.get("corp_name", "")
         items.append({
             "corp_name": name,
@@ -214,9 +255,14 @@ def collect(key: str, days: int) -> list[dict]:
             "rcept_dt": f.get("rcept_dt"),
             "report_nm": (f.get("report_nm") or "").strip(),
             "is_spac": "스팩" in name or "기업인수목적" in name,
-            "dart_url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={f.get('rcept_no')}",
+            "dart_url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={doc_rcept or f.get('rcept_no')}",
             **detail,
+            "confirmed": confirmed,
+            "doc_rcept_no": doc_rcept,
+            "doc": doc_vals,
+            **doc_vals,                                 # offer_price·band·경쟁률·확약률·유통물량·구주매출
         })
+    log(f"본문 해석 {parsed_n}건(신규) · {cached_n}건(캐시)")
     return items
 
 
@@ -262,10 +308,17 @@ def main() -> int:
         payload = {**meta, "sample": True, "items": sample_items()}
     else:
         key = os.environ.get("DART_API_KEY", "").strip()
+        prev_items = []
+        if args.prev and os.path.exists(args.prev):
+            try:
+                with open(args.prev, encoding="utf-8") as fp:
+                    prev_items = json.load(fp).get("items", [])
+            except (OSError, ValueError):
+                prev_items = []
         try:
             if not key:
                 raise DartError("DART_API_KEY 환경 변수가 없습니다")
-            payload = {**meta, "sample": False, "items": collect(key, args.days)}
+            payload = {**meta, "sample": False, "items": collect(key, args.days, prev_items)}
         except (DartError, requests.RequestException, ValueError) as e:
             log(f"수집 실패: {e}")
             if args.prev and os.path.exists(args.prev):

@@ -99,7 +99,9 @@ def grade(item: dict, rule: dict) -> tuple[str, list[str]]:
 
     # 2) 판정 보류
     if demand is None or lockup is None:
-        return "pending", ["수요예측 결과(경쟁률·확약률) 미입력"]
+        if not item.get("confirmed"):
+            return "pending", ["수요예측 결과 공시 전 (발행조건확정 신고서 제출 후 자동 반영)"]
+        return "pending", ["발행조건확정 신고서에서 경쟁률·확약률을 읽지 못함 — config/ipo_manual.yml 에 직접 입력"]
 
     # 3) 단타 조건 충족 개수
     sc = rule["scalp"]
