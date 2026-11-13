@@ -25,7 +25,33 @@ from statistics import mean
 import requests
 
 KST = timezone(timedelta(hours=9))
-PRICE_API = "https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo"
+# 공공데이터포털이 서비스 주소를 _V2 형태로 바꾸는 중이라 후보를 순서대로 시도한다.
+# (증권상품시세정보는 이미 /1160100/GetSecuritiesProductInfoService_V2 로 바뀜)
+PRICE_APIS = [u for u in [os.environ.get("DATA_GO_KR_PRICE_URL", "").strip()] if u] + [
+    "https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2",
+    "https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo",
+    "https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo",
+]
+_working_api: list[str] = []
+
+
+def price_get(session, params: dict):
+    """동작하는 주소를 한 번 찾으면 계속 그 주소를 쓴다(404·라우팅 오류면 다음 후보)."""
+    last = None
+    for url in (_working_api or PRICE_APIS):
+        try:
+            r = session.get(url, params=params, timeout=20)
+        except requests.RequestException as e:
+            last = e
+            continue
+        if r.status_code == 404 or "API not found" in r.text[:300] or "Unexpected errors" in r.text[:300]:
+            last = RuntimeError(f"{url} → {r.status_code}")
+            continue
+        if not _working_api:
+            _working_api.append(url)
+            print(f"[price] 시세 API 주소: {url}", file=sys.stderr)
+        return r
+    raise RuntimeError(f"시세 API 주소를 찾지 못함: {last}")
 HISTORY_DAYS = 400
 TRACK = {"d1": 1, "d5": 5, "d30": 30}      # 상장일(D0) 이후 거래일 수
 KEEP = ("corp_name", "corp_code", "market", "sector", "listing_date", "offer_price", "price",
@@ -64,7 +90,7 @@ def fetch_prices(session, key: str, name: str, start: date, end: date) -> list[d
         "serviceKey": key, "resultType": "json", "numOfRows": "100", "pageNo": "1",
         "itmsNm": name, "beginBasDt": start.strftime("%Y%m%d"), "endBasDt": end.strftime("%Y%m%d"),
     }
-    resp = session.get(PRICE_API, params=params, timeout=20)
+    resp = price_get(session, params)
     resp.raise_for_status()
     try:
         body = resp.json()["response"]["body"]
