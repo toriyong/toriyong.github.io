@@ -15,10 +15,11 @@
   --bad-soft: #fbe6e3;
   --neutral-soft: #eef0f3;
   --radius: 10px;
+  color-scheme: light;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
+/* 테마: data-theme = light | dark | system (theme.js가 <html>에 설정) */
+:root[data-theme="dark"] {
     --bg: #0f1216;
     --panel: #171b21;
     --line: #2a3039;
@@ -33,6 +34,25 @@
     --bad: #ff7b6b;
     --bad-soft: #3d1d1a;
     --neutral-soft: #222830;
+    color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"], :root:not([data-theme]) {
+    --bg: #0f1216;
+    --panel: #171b21;
+    --line: #2a3039;
+    --text: #e6e9ee;
+    --muted: #9aa5b4;
+    --accent: #6ea0ff;
+    --accent-soft: #1b2a45;
+    --good: #4cc38a;
+    --good-soft: #15302a;
+    --warn: #e5b04a;
+    --warn-soft: #3a2e14;
+    --bad: #ff7b6b;
+    --bad-soft: #3d1d1a;
+    --neutral-soft: #222830;
+    color-scheme: dark;
   }
 }
 
@@ -148,4 +168,17 @@ details.reasons ul { margin: 6px 0 0; padding-left: 16px; font-size: 12px; color
   .cal { gap: 3px; }
   .cal-day { min-height: 64px; padding: 4px; }
   .ev { font-size: 11px; padding: 1px 4px; }
+}
+
+/* 테마 전환 버튼 */
+.theme-switch { margin-left: auto; display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.theme-switch button { display: inline-flex; align-items: center; background: transparent; color: var(--muted); border: 0; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.theme-switch button + button { border-left: 1px solid var(--line); }
+.theme-switch button:hover { color: var(--text); background: var(--neutral-soft); }
+.theme-switch button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.theme-switch .ico { margin-right: 5px; flex-shrink: 0; }
+@media (max-width: 720px) {
+  .theme-switch .lbl { display: none; }
+  .theme-switch .ico { margin-right: 0; }
+  .theme-switch button { padding: 6px 9px; }
 }
