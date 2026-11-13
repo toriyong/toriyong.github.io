@@ -1,5 +1,5 @@
-"""진단용: 확정 신고서 본문을 텍스트로 바꾼 뒤 수요예측·확약·유통 구간만 로그로 출력한다(키·전문 미출력)."""
-import os, re, sys
+"""진단용(2차): 정정 전/후 구간과 표 원본 XML 구조 확인."""
+import io, os, re, sys, zipfile
 sys.path.insert(0, "collect/market")
 import requests
 import dart_ipo as d
@@ -7,21 +7,16 @@ import dart_doc as dd
 
 key = os.environ["DART_API_KEY"].strip()
 s = requests.Session()
-filings = d.latest_ipo_filings(d.search_equity_filings(s, key, 120))
-targets = [f for f in filings if f.get("confirm_rcept_no")][:4]
-KW = ["수요예측 참여 내역", "수요예측 참여내역", "경쟁률", "의무보유확약", "확약기간별", "유통가능", "상장예정주식"]
-for f in targets:
-    r = f["confirm_rcept_no"]
+for name, r in (("영광와이케이엠씨", "20261103000312"), ("엠비디", "20261110000253")):
     blob = s.get(f"{d.API}/document.xml", params={"crtfc_key": key, "rcept_no": r}, timeout=(10, 60)).content
+    z = zipfile.ZipFile(io.BytesIO(blob))
+    print(f"\n######## {name} files={[(i.filename, i.file_size) for i in z.infolist()]}")
     text = dd.zip_to_text(blob, r)
-    print(f"\n######## {f['corp_name']} {r} text={len(text)}자")
-    print("PARSED:", dd.parse_offering(text))
-    for kw in KW:
-        idx = [m.start() for m in re.finditer(re.escape(kw), text)]
-        print(f"--- '{kw}' 위치 {len(idx)}개: {idx[:12]}")
-    # 수요예측 결과 표, 확약 표 구간(마지막 등장 기준) 출력
-    for kw, n in (("수요예측 참여 내역", 2200), ("수요예측 참여내역", 2200), ("확약기간별", 2600), ("유통가능", 700)):
-        idx = [m.start() for m in re.finditer(re.escape(kw), text)]
-        for i in idx[-2:]:
-            print(f"\n=== [{kw} @ {i}] ===")
-            print(repr(text[max(0, i - 150): i + n]))
+    for m in re.finditer(r"[^\n]{0,40}정정\s*[전후][^\n]{0,40}", text):
+        print(f"MARK @{m.start()}: {m.group(0)!r}")
+    for pat in (r"\d+\.\d+%에 해당", r"유통가능[^\n]{0,30}\d+\.\d+%"):
+        for m in re.finditer(pat, text):
+            print(f"FLOAT @{m.start()}: {text[max(0,m.start()-120):m.end()+20]!r}")
+    raw = z.read(z.infolist()[0]).decode("utf-8", "ignore")
+    i = raw.find("의무보유확약기간별")
+    print("RAWXML:", repr(raw[i:i + 2500]))
