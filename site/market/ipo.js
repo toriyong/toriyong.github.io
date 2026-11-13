@@ -129,11 +129,9 @@
   const utc = (y, m, d) => new Date(Date.UTC(y, m, d));
   const addDays = (d, n) => utc(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + n);
 
-  const plusMonths = n => d => { const x = new Date(d); x.setUTCMonth(x.getUTCMonth() + n); return x; };
-  const LOCKUPS = [["15일", d => addDays(d, 15)], ["1개월", plusMonths(1)], ["3개월", plusMonths(3)], ["6개월", plusMonths(6)]];
-  const EV_LABEL = { sub: "청약", list: "상장", lock: "락업" };
-  const evHref = (kind, item) => (kind === "lock" || item.status === "listed") ? "results/#r-" + item.corp_code : "#row-" + item.corp_code;
-  const evText = (kind, item) => kind === "lock" ? `${item.corp_name} ${item.lock_label}` : item.corp_name;
+  const EV_LABEL = { sub: "청약", list: "상장" };
+  const evHref = (kind, item) => item.status === "listed" ? "results/#r-" + item.corp_code : "#row-" + item.corp_code;
+  const evText = (kind, item) => item.corp_name;
   const events = {};   // 'YYYY-MM-DD' → [{kind, item}]
   const push = (day, kind, item) => (events[day] = events[day] || []).push({ kind, item });
   for (const it of all) {
@@ -141,30 +139,8 @@
       const end = it.sub_end || it.sub_start;
       for (let d = new Date(it.sub_start + "T00:00:00Z"); iso(d) <= end; d = addDays(d, 1)) push(iso(d), "sub", it);
     }
-    if (it.listing_date) {
-      push(it.listing_date, "list", it);
-      // 기관 의무보유 확약 해제 예정일: 상장일 + 15일·1·3·6개월 (주말이면 다음 월요일)
-      for (const [label, add] of LOCKUPS) {
-        const d = add(new Date(it.listing_date + "T00:00:00Z"));
-        while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() + 1);
-        push(iso(d), "lock", { ...it, lock_label: label });
-      }
-    }
+    if (it.listing_date) push(it.listing_date, "list", it);
   }
-
-  // 성적표 이력(results.json)에 남아 있는 예전 상장 종목의 락업 해제일도 캘린더에 추가 (120일 넘은 6개월 락업 등)
-  try {
-    const hist = await loadJson("data/results.json");
-    const seen = new Set(all.map(i => i.corp_code));
-    for (const it of hist.items || []) {
-      if (!it.listing_date || seen.has(it.corp_code)) continue;
-      for (const [label, add] of LOCKUPS) {
-        const d = add(new Date(it.listing_date + "T00:00:00Z"));
-        while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() + 1);
-        if (iso(d) >= today) push(iso(d), "lock", { ...it, status: "listed", lock_label: label });
-      }
-    }
-  } catch (e) { /* 성적표 데이터가 아직 없으면 생략 */ }
 
   const params = new URLSearchParams(location.search);
   let [cy, cm] = (params.get("month") || today.slice(0, 7)).split("-").map(Number);
