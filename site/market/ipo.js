@@ -92,10 +92,7 @@
     const list = items.filter(c.pred);
     box.classList.remove("hidden");
     box.replaceChildren(
-      h("div", { class: "sd-head" }, [
-        h("strong", { text: `${c.head()} ${list.length}건` }),
-        h("button", { type: "button", class: "link-btn", text: "닫기", onclick: () => { openChip = null; renderSummary(); } }),
-      ]),
+      h("div", { class: "sd-head" }, h("strong", { text: `${c.head()} ${list.length}건` })),
       h("ul", { class: "sd-list" }, list.map(it => h("li", null, [
         h("a", { class: "sd-name", href: "#row-" + it.corp_code, text: it.corp_name,
           onclick: () => { filter = "all"; showLater = false; renderFilters(); renderRows(); } }),
