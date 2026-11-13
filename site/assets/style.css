@@ -336,3 +336,22 @@ th, td { padding: 9px 8px; }
 .sub-caution { background: var(--warn-soft); color: var(--warn); }
 .sub-avoid   { background: var(--bad-soft); color: var(--bad); }
 .legend + .sub-h, h3.sub-h { font-size: 15px; margin: 18px 0 8px; }
+
+/* 요약 칩 → 간단 정보 펼침 */
+.chip-btn { border: 1px solid transparent; font: inherit; font-size: 13px; color: var(--text); cursor: pointer; }
+.chip-btn:hover:not([disabled]) { border-color: var(--accent); }
+.chip-btn.on { border-color: var(--accent); background: var(--accent-soft); }
+.chip-btn[disabled] { opacity: .5; cursor: default; }
+.summary-detail { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.sd-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.sd-list { list-style: none; margin: 0; padding: 0; }
+.sd-list li { display: grid; grid-template-columns: minmax(120px, 200px) 1fr auto; gap: 4px 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.sd-list li:first-child { border-top: 0; }
+.sd-name { font-weight: 600; }
+.sd-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.sd-badges { display: flex; gap: 6px; justify-content: flex-end; }
+.link-btn { background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 13px; padding: 4px; }
+@media (max-width: 720px) {
+  .sd-list li { grid-template-columns: 1fr auto; }
+  .sd-meta { grid-column: 1 / -1; grid-row: 2; }
+}
