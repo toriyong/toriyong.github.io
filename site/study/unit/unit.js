@@ -96,6 +96,14 @@
       quizFirst ? h("details", null, [h("summary", { text: "핵심 정리 펼치기 (문제를 먼저 풀어 보세요)" }), h("ul", { class: "points" }, u.points.map(p => h("li", { text: p })))])
                 : h("ul", { class: "points" }, u.points.map(p => h("li", { text: p }))),
     ]);
+    const notes = (u.notes || []).length ? h("section", { class: "panel doc" }, [
+      h("h2", { text: "설명" }),
+      ...u.notes.flatMap(n => [
+        n.h ? h("h3", { class: "doc-h", text: n.h }) : null,
+        ...(n.p || []).map(t => h("p", { class: "doc-p", text: t })),
+        n.code ? h("pre", { class: "code" }, h("code", { text: n.code.replace(/\n$/, "") })) : null,
+      ]),
+    ]) : null;
     const quiz = h("section", { class: "panel" }, [
       h("div", { class: "panel-head" }, [h("h2", { text: "연습문제" }), tools()]),
       h("ol", { class: "quiz-list" }, (u.quiz || []).map((z, i) => quizItem(z, i + 1))),
@@ -107,7 +115,7 @@
     box.replaceChildren(
       h("p", { class: "meta", text: `${NAME[u.exam] || u.exam} · ${u.idx + 1} / ${list.length} 단원${quizFirst ? " · 문제 풀이 모드" : ""}` }),
       h("h1", { text: u.title }),
-      ...(quizFirst ? [quiz, points] : [points, quiz]),
+      ...(quizFirst ? [quiz, points, notes] : [notes, points, quiz]),
       h("div", { class: "unit-nav" }, [
         prev ? h("a", { href: `?u=${prev.id}`, text: `← ${prev.title}` }) : h("span"),
         doneBtn,

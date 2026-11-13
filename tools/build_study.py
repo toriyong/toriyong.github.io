@@ -44,6 +44,16 @@ def load_content(folder: str) -> dict:
                 d = yaml.safe_load(fp) or {}
             if d.get("exam"):
                 out[d["exam"]] = d.get("units") or []
+    # 단원별 설명(notes/*.yml)을 단원에 붙인다
+    ndir = os.path.join(folder, "notes")
+    if os.path.isdir(ndir):
+        for name in sorted(os.listdir(ndir)):
+            if name.endswith(".yml"):
+                with open(os.path.join(ndir, name), encoding="utf-8") as fp:
+                    d = yaml.safe_load(fp) or {}
+                for u in out.get(d.get("notes_for"), []):
+                    if u["id"] in (d.get("notes") or {}):
+                        u["notes"] = d["notes"][u["id"]]
     return out
 
 
