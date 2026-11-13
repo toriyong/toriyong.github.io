@@ -425,6 +425,7 @@ ul.plain { list-style: none; margin: 0; padding: 0; font-size: 13px; }
 .task.x-eis { border-color: #f4a46e; }
 .task.x-eip { border-color: #74b0e8; }
 .task.done { opacity: .55; text-decoration: line-through; }
+.task.wk { border-style: solid; font-weight: 600; }
 .task.done .chk { color: var(--good); }
 .exam-block + .exam-block { margin-top: 18px; }
 @media (max-width: 720px) {
