@@ -46,6 +46,8 @@ jobs:
           base="${{ steps.pages.outputs.base_url }}"
           curl -fsS "$base/market/data/raw_ipo.json" -o /tmp/prev_raw_ipo.json && echo "prev ipo ok" || echo "no prev ipo"
           curl -fsS "$base/security/data/secinfra.json" -o /tmp/prev_secinfra.json && echo "prev secinfra ok" || echo "no prev secinfra"
+          curl -fsS "$base/market/data/results.json" -o /tmp/prev_results.json && echo "prev results ok" || echo "no prev results"
+          curl -fsS "$base/market/data/watchlist.json" -o /tmp/prev_watchlist.json && echo "prev watchlist ok" || echo "no prev watchlist"
 
       # 본문 다운로드는 스크립트 안에서 시간 예산(기본 300초)으로 끊는다.
       # 그래도 멈추면 이 단계만 9분에 종료하고, 아래 단계에서 직전 데이터로 대체한다.
@@ -68,6 +70,31 @@ jobs:
           python process/market/grade_ipo.py \
             --raw site/market/data/raw_ipo.json \
             --out site/market/data/ipo.json
+
+      # 성적표: 상장 이력은 직전 results.json 을 이어받아 누적. 주가는 DATA_GO_KR_KEY 가 있을 때만
+      - name: IPO results (성적표)
+        timeout-minutes: 5
+        continue-on-error: true
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: |
+          python collect/market/ipo_results.py \
+            --ipo site/market/data/ipo.json \
+            --out site/market/data/results.json \
+            --prev /tmp/prev_results.json || echo "성적표 수집 실패 → 직전 데이터 사용"
+          [ -s site/market/data/results.json ] || cp /tmp/prev_results.json site/market/data/results.json 2>/dev/null || true
+
+      - name: Watchlist (관심종목)
+        timeout-minutes: 5
+        continue-on-error: true
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: |
+          python collect/market/watchlist.py \
+            --out site/market/data/watchlist.json \
+            --prev /tmp/prev_watchlist.json || echo "관심종목 수집 실패 → 직전 데이터 사용"
+          [ -s site/market/data/watchlist.json ] || cp /tmp/prev_watchlist.json site/market/data/watchlist.json 2>/dev/null || true
 
       # 보안·인프라: 출처별로 독립 수집, 실패한 출처는 건너뛰고 직전 데이터 유지
       - name: Collect security & infra

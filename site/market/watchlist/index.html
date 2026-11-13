@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>관심종목 · toriyong</title>
+  <script src="../../assets/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-tab="market" data-sub="watchlist">
+  <main>
+    <div class="wrap">
+      <h1>관심종목</h1>
+      <p class="lead">관심종목의 증권사 목표가 대비 현재가(도달률), 최근 뉴스 제목, DART 공시를 모아 봅니다.</p>
+
+      <div id="banner-empty" class="banner info hidden">관심종목이 없습니다. config/watchlist.yml 에 종목을 추가하면 다음 자동 수집부터 표시됩니다.</div>
+      <div id="banner-noprice" class="banner info hidden">현재가는 공공데이터포털 키(DATA_GO_KR_KEY) 등록 후 표시됩니다. 뉴스·공시는 지금도 수집됩니다.</div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>목표가 도달률</h2>
+          <span class="meta" id="updated">기준 시각 –</span>
+        </div>
+        <div class="table-wrap">
+          <table class="rcards">
+            <thead><tr><th>종목</th><th class="num">현재가</th><th class="num">평균 목표가</th><th class="num">도달률</th><th class="num">상승 여력</th><th>목표가 (증권사 · 날짜)</th></tr></thead>
+            <tbody id="target-rows"></tbody>
+          </table>
+        </div>
+        <p class="meta">도달률 = 현재가 ÷ 평균 목표가. 목표가는 config/watchlist.yml 에 직접 입력한 값이며(최근 90일 평균), 현재가는 영업일 기준 하루 늦게 반영됩니다.</p>
+      </section>
+
+      <div id="stocks"></div>
+    </div>
+  </main>
+  <script src="../../assets/common.js"></script>
+  <script src="watchlist.js"></script>
+</body>
+</html>
