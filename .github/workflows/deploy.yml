@@ -105,12 +105,11 @@ jobs:
             --out site/security/data/secinfra.json \
             --prev /tmp/prev_secinfra.json
 
-      # 학습 페이지: 시험 일정 + 공부 계획을 STUDY_PASSWORD 로 암호화한 파일만 배포
-      - name: Build study page (encrypted)
+      # 학습 페이지: 시험 일정 + 공부 계획 (공개)
+      - name: Build study page
         env:
-          STUDY_PASSWORD: ${{ secrets.STUDY_PASSWORD }}
           STUDY_PLAN: ${{ secrets.STUDY_PLAN }}
-        run: python tools/build_study.py --out site/study/data.enc.json
+        run: python tools/build_study.py --out site/study/data.json
 
       # 브라우저·CDN 캐시 때문에 새 JS와 옛 CSS가 섞여 보이지 않도록 정적 파일 주소에 버전(커밋) 붙이기
       - name: Cache-bust assets

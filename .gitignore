@@ -227,4 +227,4 @@ site/market/data/*.json
 .DS_Store
 Thumbs.db
 site/security/data/*.json
-site/study/data.enc.json
+site/study/data.json

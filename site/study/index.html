@@ -15,26 +15,14 @@
   <main>
     <div class="wrap">
       <h1>학습</h1>
-      <p class="lead">자격증 시험 일정과 공부 스케줄. 비밀번호를 입력해야 열립니다.</p>
+      <p class="lead">자격증 시험 일정과 공부 스케줄.</p>
 
-      <section class="panel lock-panel" id="lock">
-        <h2>🔒 잠긴 페이지</h2>
-        <form id="unlock-form" class="unlock" autocomplete="off">
-          <label for="pw" class="meta">비밀번호</label>
-          <input type="password" id="pw" required autocomplete="current-password">
-          <label class="remember"><input type="checkbox" id="remember"> 이 기기에서 기억 (공용 PC에서는 끄기)</label>
-          <button type="submit" id="unlock-btn">열기</button>
-          <p class="meta" id="unlock-msg" aria-live="polite"></p>
-        </form>
-        <p class="meta">내용은 AES-256-GCM 으로 암호화되어 배포되며, 비밀번호는 서버로 전송되지 않고 이 브라우저 안에서만 복호화에 쓰입니다.</p>
-      </section>
-
-      <div id="content" class="hidden">
+      <div id="content">
         <div id="banner-est" class="banner warn hidden"></div>
         <section class="panel">
           <div class="panel-head">
             <h2>D-day</h2>
-            <span class="meta"><span id="updated"></span> · <button type="button" class="link-btn" id="lock-btn">잠그기</button></span>
+            <span class="meta"><span id="updated"></span></span>
           </div>
           <div class="dday-grid" id="dday"></div>
         </section>
