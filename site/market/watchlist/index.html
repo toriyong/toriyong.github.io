@@ -15,8 +15,14 @@
     <div class="wrap">
       <h1>관심종목</h1>
       <p class="lead">관심종목의 증권사 목표가 대비 현재가(도달률), 최근 뉴스 제목, DART 공시를 모아 봅니다.</p>
+      <div class="wl-actions">
+        <a class="btn-primary" href="https://github.com/toriyong/toriyong.github.io/issues/new?template=watchlist.yml&amp;action=%EC%A2%85%EB%AA%A9+%EC%B6%94%EA%B0%80" target="_blank" rel="noopener noreferrer">＋ 관심종목 추가</a>
+        <a class="btn-ghost" href="https://github.com/toriyong/toriyong.github.io/issues/new?template=watchlist.yml&amp;action=%EB%AA%A9%ED%91%9C%EA%B0%80+%EC%B6%94%EA%B0%80" target="_blank" rel="noopener noreferrer">목표가 입력</a>
+        <a class="btn-ghost" href="https://github.com/toriyong/toriyong.github.io/issues/new?template=watchlist.yml&amp;action=%EC%A2%85%EB%AA%A9+%EC%82%AD%EC%A0%9C" target="_blank" rel="noopener noreferrer">종목 삭제</a>
+        <span class="meta">GitHub 로그인 필요 · 저장소 소유자만 처리 · 자동으로 PR 생성 → 머지하면 반영</span>
+      </div>
 
-      <div id="banner-empty" class="banner info hidden">관심종목이 없습니다. config/watchlist.yml 에 종목을 추가하면 다음 자동 수집부터 표시됩니다.</div>
+      <div id="banner-empty" class="banner info hidden">관심종목이 없습니다. 위의 '＋ 관심종목 추가'로 등록하세요.</div>
       <div id="banner-noprice" class="banner info hidden">현재가는 공공데이터포털 키(DATA_GO_KR_KEY) 등록 후 표시됩니다. 뉴스·공시는 지금도 수집됩니다.</div>
 
       <section class="panel">
