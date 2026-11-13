@@ -204,6 +204,14 @@
     $("cal-prev").onclick = () => { cm--; if (cm < 1) { cm = 12; cy--; } renderCal(); };
     $("cal-next").onclick = () => { cm++; if (cm > 12) { cm = 1; cy++; } renderCal(); };
     $("cal-today").onclick = () => { [cy, cm] = today.slice(0, 7).split("-").map(Number); renderCal(); };
+    $("reset-done").onclick = () => {
+      let keys = [];
+      try { keys = Object.keys(localStorage).filter(k => k.startsWith(DONE) || k.startsWith("study:unit:")); } catch (e) { /* noop */ }
+      if (!keys.length) { alert("체크된 항목이 없습니다."); return; }
+      if (!confirm(`완료 체크 ${keys.length}개를 모두 지울까요? (기출 오답 메모는 그대로 둡니다)`)) return;
+      keys.forEach(k => store.del(k));
+      renderCal(); render2();
+    };
     renderCal();
     render2();
 
