@@ -29,6 +29,7 @@
     const today = todayKst();
     const exams = data.exams || [];
     const plan = data.plan || {};
+    const content = data.content || {};      // 시험별 학습 단원 {eis: [...], eip: [...]}
     const examOf = id => exams.find(e => e.id === id);
     const roundOf = (e, r) => (e && e.rounds || []).find(x => String(x.round) === String(r));
     const first = v => Array.isArray(v) ? v[0] : v;
@@ -82,16 +83,25 @@
       let cursor = 0;
       s.phases.forEach((p, i) => {
         const len = i === s.phases.length - 1 ? total - cursor : Math.round(total * (p.weight || 1) / wsum);
+        // 이 단계의 공부일(쉬는 요일 제외)을 먼저 모은 뒤, 단원을 순서대로 고르게 배정
+        const days = [];
         for (let k = 0; k < len; k++) {
           const day = add(s.from, cursor + k);
-          const dow = D(day).getUTCDay();
-          if (restSet.has(dow)) continue;
-          const hr = dow === 0 || dow === 6 ? hours.weekend : hours.weekday;
-          (tasks[day] = tasks[day] || []).push({
-            id: `${day}:${s.t.exam}:${s.stage}`, exam: s.t.e.name, cls: `x-${s.t.exam}`,
-            text: `${s.t.e.name} ${s.stage} · ${p.name}`, hr,
-          });
+          if (!restSet.has(D(day).getUTCDay())) days.push(day);
         }
+        const units = (content[s.t.exam] || []);
+        const kind = p.kind || (i === 0 ? "concept" : i === s.phases.length - 1 ? "review" : "quiz");
+        days.forEach((day, n) => {
+          const dow = D(day).getUTCDay();
+          const hr = dow === 0 || dow === 6 ? hours.weekend : hours.weekday;
+          const u = units.length && kind !== "review" ? units[Math.min(units.length - 1, Math.floor(n * units.length / days.length))] : null;
+          const no = u ? u.id.split("-")[1] : "";
+          (tasks[day] = tasks[day] || []).push({
+            id: `${day}:${s.t.exam}:${s.stage}`, exam: s.t.e.name, cls: `x-${s.t.exam}`, hr,
+            text: u ? `${p.name} ${no} ${u.title}` : `${p.name} · 전체 문제 점검`,
+            href: u ? `unit/?u=${u.id}${kind === "quiz" ? "&mode=quiz" : ""}` : `unit/?e=${s.t.exam}&mode=all`,
+          });
+        });
         cursor += len;
       });
     }
@@ -134,10 +144,12 @@
     function cellChildren(key) {
       return [
         ...(evByDay[key] || []).map(ev => h("span", { class: `ev exam x-${ev.exam.id}`, title: `${ev.exam.name} ${ev.round.round} ${LABEL[ev.kind]}`, text: evText(ev) })),
-        ...(tasks[key] || []).map(t => h("button", {
-          type: "button", class: `task ${t.cls}${isDone(t.id) ? " done" : ""}`, title: `${t.text} (${t.hr}시간)`, "aria-pressed": String(isDone(t.id)),
-          onclick: () => { isDone(t.id) ? store.del(DONE + t.id) : store.set(DONE + t.id, "1"); renderCal(); render2(); },
-        }, [h("span", { class: "chk", text: isDone(t.id) ? "✔" : "○" }), `[${SHORT(t.exam)}] ${t.text.replace(t.exam + " ", "")} ${t.hr}h`])),
+        ...(tasks[key] || []).map(t => h("span", { class: `task ${t.cls}${isDone(t.id) ? " done" : ""}` }, [
+          h("button", { type: "button", class: "chk", title: "완료 체크", "aria-pressed": String(isDone(t.id)), "aria-label": `${t.text} 완료 체크`,
+            onclick: () => { isDone(t.id) ? store.del(DONE + t.id) : store.set(DONE + t.id, "1"); renderCal(); render2(); },
+            text: isDone(t.id) ? "✔" : "○" }),
+          h("a", { class: "task-link", href: t.href, title: `${t.exam} ${t.text} (${t.hr}시간) — 눌러서 공부하기`, text: `[${SHORT(t.exam)}] ${t.text}` }),
+        ])),
       ];
     }
     function renderCal() {
