@@ -3,6 +3,7 @@
 
 start: 2026-12-14            # 공부 시작일(월요일 권장)
 hours: { weekday: 1.5, weekend: 3 }   # 하루 공부 시간(시간)
+past_days: 14               # 시험 직전 며칠을 기출문제 풀이로 할지
 rest_days: [sun]             # 쉬는 요일: mon tue wed thu fri sat sun
 
 # 목표 시험: exams.yml 의 id · round, 응시 단계(written=필기부터, practical=실기만)

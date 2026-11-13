@@ -73,6 +73,14 @@
       } else if (pStart) {
         segs.push({ from: start, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: "실기" });
       }
+      // 시험 직전 N일(기본 14일)은 기출문제 풀이로 고정하고, 그 앞 기간만 단계 비중대로 나눈다
+      const lastSeg = segs[segs.length - 1];
+      const pastDays = plan.past_days ?? 14;
+      if (lastSeg && lastSeg.t === t && pastDays > 0 && diff(lastSeg.to, lastSeg.from) + 1 > pastDays) {
+        const pastFrom = add(lastSeg.to, -(pastDays - 1));
+        segs.push({ from: pastFrom, to: lastSeg.to, phases: [{ name: "기출 풀이", kind: "past", weight: 1 }], t, stage: lastSeg.stage });
+        lastSeg.to = add(pastFrom, -1);
+      }
     }
     // 구간을 단계 비중대로 나눠 날짜별 과제 만들기
     const tasks = {};    // date → [{id, text, exam}]
@@ -94,12 +102,13 @@
         days.forEach((day, n) => {
           const dow = D(day).getUTCDay();
           const hr = dow === 0 || dow === 6 ? hours.weekend : hours.weekday;
-          const u = units.length && kind !== "review" ? units[Math.min(units.length - 1, Math.floor(n * units.length / days.length))] : null;
+          const u = units.length && kind !== "review" && kind !== "past" ? units[Math.min(units.length - 1, Math.floor(n * units.length / days.length))] : null;
           const no = u ? u.id.split("-")[1] : "";
           (tasks[day] = tasks[day] || []).push({
             id: `${day}:${s.t.exam}:${s.stage}`, exam: s.t.e.name, cls: `x-${s.t.exam}`, hr,
-            text: u ? `${p.name} ${no} ${u.title}` : `${p.name} · 전체 문제 점검`,
-            href: u ? `unit/?u=${u.id}${kind === "quiz" ? "&mode=quiz" : ""}` : `unit/?e=${s.t.exam}&mode=all`,
+            text: u ? `${p.name} ${no} ${u.title}` : kind === "past" ? `기출 풀이 ${n + 1}일차` : `${p.name} · 전체 문제 점검`,
+            href: u ? `unit/?u=${u.id}${kind === "quiz" ? "&mode=quiz" : ""}`
+              : kind === "past" ? `unit/?e=${s.t.exam}&mode=past&d=${n + 1}&of=${days.length}&date=${day}` : `unit/?e=${s.t.exam}&mode=all`,
           });
         });
         cursor += len;

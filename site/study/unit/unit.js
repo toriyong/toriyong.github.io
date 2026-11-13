@@ -50,6 +50,39 @@
     return;
   }
 
+  // ---------- 기출문제 풀이(시험 직전 2주): 기출 원문은 싣지 않고 풀이 절차·오답 메모·복습 단원만 제공
+  if (q.get("mode") === "past" && content[q.get("e")]) {
+    const exam = q.get("e");
+    const d = Number(q.get("d")) || 1, of = Number(q.get("of")) || 12;
+    const key = `study:past:${exam}:${d}`;
+    document.title = `${NAME[exam]} 기출 풀이 ${d}일차 · toriyong`;
+    const note = h("textarea", { class: "note", rows: 8, placeholder: "예) 2025년 2회 — 14문제 중 9개 정답. 틀린 것: Snort 옵션, IPsec 모드, 위험 처리 전략 …" });
+    note.value = store.get(key) || "";
+    note.addEventListener("input", () => store.set(key, note.value));
+    const steps = [
+      "오늘 풀 기출 회차를 정한다(최근 회차부터, 하루 1회차). 문제는 가지고 있는 기출 자료(구글 드라이브 02.공부 폴더)에서 꺼낸다.",
+      "실제 시험처럼 시간을 재고, 자료를 보지 않고 답을 손으로 끝까지 쓴다.",
+      "채점한 뒤 틀리거나 망설인 문제의 주제를 아래 메모에 적는다.",
+      "그 주제의 단원(아래 목록)을 열어 핵심 정리와 연습문제를 다시 본다.",
+      d >= of - 1 ? "마지막 이틀은 새 회차 대신 그동안의 오답 메모와 '전체 문제 점검'만 다시 본다." : "이틀 뒤 같은 회차의 틀린 문제만 다시 풀어 본다.",
+    ];
+    box.replaceChildren(
+      h("p", { class: "meta", text: `${NAME[exam] || exam}${q.get("date") ? " · " + q.get("date") : ""}` }),
+      h("h1", { text: `기출문제 풀이 ${d}일차 / ${of}` }),
+      h("section", { class: "panel" }, [h("h2", { text: "오늘 할 일" }), h("ol", { class: "points" }, steps.map(t => h("li", { text: t })))]),
+      h("section", { class: "panel" }, [
+        h("h2", { text: "오답 메모" }),
+        h("p", { class: "meta", text: "이 브라우저에만 저장됩니다(다른 기기와 동기화되지 않음)." }),
+        note,
+      ]),
+      h("section", { class: "panel" }, [
+        h("div", { class: "panel-head" }, [h("h2", { text: "틀린 주제 복습" }), h("a", { href: `?e=${exam}&mode=all`, text: "전체 문제 점검 →" })]),
+        h("ol", { class: "unit-list" }, content[exam].map(x => h("li", null, h("a", { href: `?u=${x.id}&mode=quiz`, text: x.title })))),
+      ]),
+    );
+    return;
+  }
+
   // ---------- 단원 보기
   const u = all.find(x => x.id === q.get("u"));
   if (u) {
