@@ -33,7 +33,9 @@
   const favList = $("fav-list");
   const favNote = $("fav-note");
 
-  let items = null;     // [{c, n, m, i, k}]
+  let items = null;     // [{c, n, m, p, r, a, i, k}]
+  let byCode = new Map();
+  let baseDate = "";
   let loading = null;
   let favs = store.get();
   const isFav = code => favs.some(f => f.c === code);
@@ -42,7 +44,10 @@
     if (loading) return loading;
     loading = loadJson("../stocks.json").then(d => {
       items = (d.stocks || []).map(x => ({ ...x, i: initials(x.n), k: clean(x.n) }));
-      note.textContent = `${d.count || items.length}개 종목에서 검색합니다.`;
+      baseDate = d.base_date || "";
+      byCode = new Map(items.map(x => [x.c, x]));
+      note.textContent = `${d.count || items.length}개 종목${baseDate ? ` · ${baseDate} 종가` : ""}`;
+      renderFavs();        // 즐겨찾기에 시세를 채운다
       return items;
     }).catch(() => {
       items = [];
@@ -101,6 +106,21 @@
     });
   }
 
+  const won = n => (n === null || n === undefined) ? "–" : n.toLocaleString("ko-KR");
+  const cap = a => !a ? null : a >= 10000 ? `${(a / 10000).toFixed(1)}조` : `${a.toLocaleString("ko-KR")}억`;
+
+  function priceBox(x) {
+    const d = byCode.get(x.c) || x;
+    if (d.p === undefined || d.p === null) return h("div", { class: "sr-price" }, h("span", { class: "meta", text: "–" }));
+    const r = d.r;
+    return h("div", { class: "sr-price" }, [
+      h("strong", { text: won(d.p) }),
+      r === undefined || r === null ? null
+        : h("span", { class: `sr-chg ${r > 0 ? "up" : r < 0 ? "down" : "meta"}`, text: `${r > 0 ? "+" : ""}${r}%` }),
+      cap(d.a) ? h("span", { class: "meta", text: cap(d.a) }) : null,
+    ]);
+  }
+
   function row(x, cls) {
     return h("li", { class: cls }, [
       starBtn(x),
@@ -108,6 +128,7 @@
         h("strong", { class: "sr-name", text: x.n }),
         h("span", { class: "sr-code" }, [x.c, h("span", { class: "meta", text: ` ${x.m}` })]),
       ]),
+      priceBox(x),
       h("a", {
         class: "sr-add", href: issueHref("종목 추가", x), target: "_blank", rel: "noopener noreferrer",
         title: `${x.n} 을 GitHub 에 등록해 뉴스·공시·목표가를 받습니다`, text: "등록 ↗",
@@ -130,8 +151,9 @@
       favNote.textContent = "이 브라우저에만 저장됩니다.";
       return;
     }
+    if (!items && !loading) load();        // 즐겨찾기가 있으면 시세를 바로 불러온다
     favList.replaceChildren(...favs.map(x => row(x, "sr-item fav")));
-    favNote.textContent = `${favs.length}개 · 이 브라우저에만 저장됩니다. 뉴스·공시·목표가까지 받으려면 '등록'을 누르세요.`;
+    favNote.textContent = `${favs.length}개${baseDate ? ` · ${baseDate} 종가` : ""} · 뉴스·공시·목표가까지 받으려면 '등록'`;
   }
 
   let timer = 0;

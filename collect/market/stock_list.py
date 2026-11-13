@@ -5,7 +5,9 @@
 
 - 입력: 공공데이터포털 주식시세정보(getStockPriceInfo_V2) — 최근 영업일 전 종목
         (watchlist.py 가 현재가를 가져올 때 쓰는 것과 같은 API·같은 키)
-- 출력: site/market/stocks.json  → [{"c": 종목코드, "n": 종목명, "m": 시장}, ...]
+- 출력: site/market/stocks.json
+    → [{"c": 종목코드, "n": 종목명, "m": 시장, "p": 종가, "r": 등락률, "a": 시가총액(억원)}, ...]
+  시세를 같이 담아 두면 즐겨찾기만 해도 현재가·등락률이 바로 보인다.
 
 사용: DATA_GO_KR_KEY=... python collect/market/stock_list.py [--out site/market/stocks.json]
 """
@@ -30,6 +32,14 @@ PAGE = 1000           # 한 번에 받는 건수(포털 상한)
 MAX_PAGES = 12        # 상장 종목 약 2,900개 + 여유
 MARKET = {"KOSPI": "코스피", "KOSDAQ": "코스닥", "KONEX": "코넥스"}
 _KEY_RE = re.compile(r"(?i)\b(serviceKey|api_?key|key)=[^&\s'\"]+")
+
+
+def num(v):
+    """숫자 문자열을 float 로. 빈 값·이상값은 None."""
+    try:
+        return float(str(v).replace(",", "").strip())
+    except (TypeError, ValueError):
+        return None
 
 
 def log(msg: str) -> None:
@@ -96,8 +106,17 @@ def collect(key: str, timeout: int = 30) -> dict:
                 code = str(it.get("srtnCd") or "").strip()[-6:]
                 name = str(it.get("itmsNm") or "").strip()
                 mkt = MARKET.get(str(it.get("mrktCtg") or "").strip().upper())
-                if re.fullmatch(r"\d{6}", code) and name and mkt:
-                    stocks.setdefault(code, {"c": code, "n": name, "m": mkt})
+                if not (re.fullmatch(r"\d{6}", code) and name and mkt):
+                    continue
+                row = {"c": code, "n": name, "m": mkt}
+                price, rate, cap = num(it.get("clpr")), num(it.get("fltRt")), num(it.get("mrktTotAmt"))
+                if price is not None:
+                    row["p"] = int(price)
+                if rate is not None:
+                    row["r"] = round(rate, 2)
+                if cap:
+                    row["a"] = int(cap / 1e8)        # 억원
+                stocks.setdefault(code, row)
             if page * PAGE >= total or not items:
                 break
         if stocks:

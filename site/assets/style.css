@@ -586,3 +586,6 @@ textarea.note { width: 100%; box-sizing: border-box; font: inherit; line-height:
 .sr-item.fav .sr-name { font-weight: 600; }
 .wl-tag { font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none; padding: 1px 6px; border: 1px solid var(--line); border-radius: 999px; }
 .wl-tag:hover { background: var(--accent-soft); }
+.sr-price { flex: none; min-width: 96px; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; font-size: 14px; }
+.sr-chg { font-size: 12.5px; }
+.sr-price .meta { font-size: 11.5px; }
