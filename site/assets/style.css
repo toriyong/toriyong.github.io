@@ -565,3 +565,22 @@ textarea.note { width: 100%; box-sizing: border-box; font: inherit; line-height:
 .doc-p { margin: 0 0 10px; line-height: 1.75; overflow-wrap: anywhere; }
 .progress-bar-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
 .progress-bar-row .more { margin: 0 0 10px; font-size: 13px; padding: 5px 12px; }
+
+/* 관심종목 > 종목 검색 */
+.search-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.search-input { flex: 1; min-width: 0; padding: 9px 12px; font: inherit; font-size: 15px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.search-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sr-list { list-style: none; margin: 0; padding: 0; }
+.sr-list .empty { padding: 14px 2px; color: var(--muted); font-size: 14px; }
+.sr-item { display: flex; gap: 10px; align-items: center; padding: 10px 2px; border-top: 1px solid var(--line); }
+.sr-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sr-name { font-size: 15px; }
+.sr-code { font-size: 13px; color: var(--muted); }
+.sr-add, .sr-target { flex: none; padding: 5px 10px; font-size: 13px; border-radius: 7px; border: 1px solid var(--line); text-decoration: none; color: var(--text); }
+.sr-add { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.sr-add:hover, .sr-target:hover { background: var(--panel-2, rgba(127,127,127,.08)); }
+@media (max-width: 520px) { .sr-target { display: none; } }
+.star { flex: none; width: 32px; padding: 2px; font-size: 19px; line-height: 1; color: var(--muted); background: transparent; border: 0; cursor: pointer; }
+.star.on { color: #f0a92e; }
+.star:hover { color: #f0a92e; }
+.sr-item.fav .sr-name { font-weight: 600; }

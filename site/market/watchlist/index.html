@@ -22,6 +22,26 @@
         <span class="meta">GitHub 로그인 필요 · 저장소 소유자만 처리 · 자동으로 PR 생성 → 머지하면 반영</span>
       </div>
 
+      <section class="panel" id="my-favs">
+        <div class="panel-head">
+          <h2>★ 내 즐겨찾기</h2>
+          <span class="meta" id="fav-note">이 브라우저에만 저장됩니다.</span>
+        </div>
+        <ul id="fav-list" class="sr-list"></ul>
+      </section>
+
+      <section class="panel" id="stock-search">
+        <div class="panel-head">
+          <h2>종목 검색</h2>
+          <span class="meta" id="sr-note">종목명·초성(ㅅㅅㅈㅈ)·종목코드로 찾을 수 있습니다.</span>
+        </div>
+        <div class="search-row">
+          <input type="search" id="q" class="search-input" placeholder="삼성전자 · ㅅㅅㅈㅈ · 005930" autocomplete="off" spellcheck="false" aria-label="종목 검색">
+          <button type="button" id="q-clear" class="more" title="지우기" aria-label="검색어 지우기">지우기</button>
+        </div>
+        <ul id="sr" class="sr-list"></ul>
+      </section>
+
       <div id="banner-empty" class="banner info hidden">관심종목이 없습니다. 위의 '＋ 관심종목 추가'로 등록하세요.</div>
       <div id="banner-noprice" class="banner info hidden">현재가는 공공데이터포털 키(DATA_GO_KR_KEY) 등록 후 표시됩니다. 뉴스·공시는 지금도 수집됩니다.</div>
 
@@ -44,5 +64,6 @@
   </main>
   <script src="../../assets/common.js"></script>
   <script src="watchlist.js"></script>
+  <script src="search.js"></script>
 </body>
 </html>
