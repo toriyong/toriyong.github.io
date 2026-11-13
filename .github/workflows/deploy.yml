@@ -72,6 +72,15 @@ jobs:
             --out site/security/data/secinfra.json \
             --prev /tmp/prev_secinfra.json
 
+      # 브라우저·CDN 캐시 때문에 새 JS와 옛 CSS가 섞여 보이지 않도록 정적 파일 주소에 버전(커밋) 붙이기
+      - name: Cache-bust assets
+        run: |
+          v="${GITHUB_SHA::7}"
+          find site -name '*.html' -print0 | xargs -0 sed -i -E \
+            -e "s#(href=\"[^\"?]+\.css)\"#\1?v=${v}\"#g" \
+            -e "s#(src=\"[^\"?]+\.js)\"#\1?v=${v}\"#g"
+          grep -ho '\.\(css\|js\)?v=[0-9a-f]*' site/index.html site/market/index.html | sort -u || true
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
