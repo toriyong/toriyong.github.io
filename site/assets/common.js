@@ -10,6 +10,7 @@
     { id: "home", label: "홈", href: "" },
     { id: "security", label: "보안·인프라", href: "security/" },
     { id: "market", label: "증시", href: "market/" },
+    { id: "study", label: "학습", href: "study/" },
   ];
 
   function h(tag, attrs, children) {
