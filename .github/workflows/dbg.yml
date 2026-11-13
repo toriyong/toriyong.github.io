@@ -1,0 +1,14 @@
+name: debug withdrawn (temporary)
+on: { push: { branches: ["debug/withdrawn"] } }
+permissions: { contents: read }
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - env: { DART_API_KEY: "${{ secrets.DART_API_KEY }}" }
+        run: python tools/dbg_withdrawn.py
