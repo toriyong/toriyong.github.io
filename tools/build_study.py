@@ -33,10 +33,25 @@ def jsonable(o):
     return o
 
 
+def load_content(folder: str) -> dict:
+    """content/study/*.yml → {시험 id: [단원...]}"""
+    out = {}
+    if not os.path.isdir(folder):
+        return out
+    for name in sorted(os.listdir(folder)):
+        if name.endswith(".yml"):
+            with open(os.path.join(folder, name), encoding="utf-8") as fp:
+                d = yaml.safe_load(fp) or {}
+            if d.get("exam"):
+                out[d["exam"]] = d.get("units") or []
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--exams", default="config/exams.yml")
     ap.add_argument("--example", default="config/study.example.yml")
+    ap.add_argument("--content", default="content/study")
     ap.add_argument("--out", default="site/study/data.json")
     args = ap.parse_args()
 
@@ -55,6 +70,7 @@ def main() -> int:
         "plan_source": plan_src,
         "exams": exams.get("exams", []),
         "plan": plan,
+        "content": load_content(args.content),
     })
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
