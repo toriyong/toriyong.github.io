@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>공모주 성적표 · toriyong</title>
+  <script src="../../assets/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-tab="market" data-sub="results">
+  <main>
+    <div class="wrap">
+      <h1>공모주 성적표</h1>
+      <p class="lead">최근 상장한 공모주의 공모가 대비 시가·종가·D+1·D+5·D+30 수익률과, 청약 판단·섹터별 실제 성과입니다.</p>
+
+      <div id="banner-noprice" class="banner info hidden">주가 데이터 연결 전입니다. 공공데이터포털 키(DATA_GO_KR_KEY)를 등록하면 수익률이 자동으로 채워집니다. 지금은 상장 이력·섹터만 표시합니다.</div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>청약 판단별 실제 성과</h2>
+          <span class="meta" id="updated">기준 시각 –</span>
+        </div>
+        <div class="table-wrap">
+          <table class="rcards">
+            <thead><tr><th>청약 판단</th><th class="num">종목 수</th><th class="num">시가</th><th class="num">D0 종가</th><th class="num">D+5</th><th class="num">D+30</th><th class="num">D0 상승 비율</th></tr></thead>
+            <tbody id="bucket-rows"></tbody>
+          </table>
+        </div>
+        <p class="meta">공모가 대비 평균 수익률. 표본이 쌓이면 증시 탭 청약 판단 기준(경쟁률 1,000·500·300)이 실제로 맞는지 여기서 확인합니다.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>최근 상장 성적</h2>
+          <div class="filters" id="period"></div>
+        </div>
+        <div class="table-wrap">
+          <table class="rcards">
+            <thead><tr><th>종목</th><th>상장일</th><th class="num">공모가</th><th class="num">경쟁률</th><th>청약 판단</th><th class="num">시가</th><th class="num">D0 종가</th><th class="num">D+1</th><th class="num">D+5</th><th class="num">D+30</th><th class="num">현재</th></tr></thead>
+            <tbody id="result-rows"></tbody>
+          </table>
+        </div>
+        <p class="meta">수익률 = (해당일 가격 ÷ 확정 공모가 − 1). D+n 은 상장일 다음 n번째 거래일 종가. 주가는 영업일 기준 하루 늦게 반영됩니다.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>섹터 주목도 (최근 90일)</h2>
+        </div>
+        <div class="sector-grid" id="sectors"></div>
+        <p class="meta">상장 건수가 많은 업종 순, 같으면 평균 경쟁률 순. 업종은 한국거래소 KIND 분류입니다.</p>
+      </section>
+    </div>
+  </main>
+  <script src="../../assets/common.js"></script>
+  <script src="results.js"></script>
+</body>
+</html>

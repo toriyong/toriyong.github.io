@@ -87,10 +87,32 @@
     return group;
   }
 
+  // 하위 메뉴: body 의 data-sub 가 있으면 해당 탭의 하위 페이지 메뉴를 헤더 아래에 그린다
+  const SUBNAV = {
+    market: [
+      { id: "ipo", label: "공모주", href: "market/" },
+      { id: "results", label: "성적표", href: "market/results/" },
+      { id: "watchlist", label: "관심종목", href: "market/watchlist/" },
+    ],
+  };
+  function renderSubnav() {
+    const items = SUBNAV[current];
+    const sub = body.dataset.sub;
+    if (!items || !sub) return;
+    const nav = h("nav", { class: "subnav", "aria-label": "하위 메뉴" }, h("div", { class: "wrap" },
+      items.map(t => h("a", {
+        href: root + t.href,
+        class: t.id === sub ? "active" : null,
+        "aria-current": t.id === sub ? "page" : null,
+        text: t.label,
+      }))));
+    document.querySelector(".site-header").after(nav);
+  }
+
   function renderFooter() {
     const footer = h("footer", { class: "site-footer" }, h("div", { class: "wrap" }, [
       h("p", { text: "이 사이트는 공개 데이터를 정리해 보여 주는 정보 사이트이며, 투자 권유나 매매 추천을 하지 않습니다. 투자 판단과 책임은 본인에게 있습니다." }),
-      h("p", { text: "데이터 출처: 금융감독원 OpenDART, CISA KEV, endoflife.date, 각 언론사·기관 RSS(제목과 링크만 표시). 원문을 반드시 확인하세요." }),
+      h("p", { text: "데이터 출처: 금융감독원 OpenDART, 한국거래소 KIND, 금융위원회 주식시세정보(공공데이터포털), CISA KEV, endoflife.date, 각 언론사·기관 RSS(제목과 링크만 표시). 원문을 반드시 확인하세요." }),
     ]));
     body.append(footer);
   }
@@ -132,5 +154,6 @@
 
   window.Hub = { h, fmt, todayKst, loadJson, root };
   renderHeader();
+  renderSubnav();
   renderFooter();
 })();

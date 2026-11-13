@@ -355,3 +355,47 @@ th, td { padding: 9px 8px; }
   .sd-list li { grid-template-columns: 1fr auto; }
   .sd-meta { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* ---------------- 증시 하위 메뉴 · 성적표 · 관심종목 ---------------- */
+.subnav { border-bottom: 1px solid var(--line); background: var(--panel); }
+.subnav .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.subnav .wrap::-webkit-scrollbar { display: none; }
+.subnav a { padding: 10px 14px; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; font-size: 14px; text-decoration: none; }
+.subnav a:hover { color: var(--text); }
+.subnav a.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+.ev.lock { border-left: 3px solid var(--warn); }
+.ev.inline { display: inline-block; margin: 0 2px 0 0; vertical-align: middle; }
+.cal-legend { margin: 0 0 10px; }
+
+/* 수익률 색: 국내 관례대로 상승 빨강 · 하락 파랑 */
+.up { color: #d6336c; font-weight: 600; }
+.down { color: #1c7ed6; font-weight: 600; }
+:root[data-theme="dark"] .up { color: #ff6b8b; }
+:root[data-theme="dark"] .down { color: #4dabf7; }
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] .up, :root:not([data-theme]) .up { color: #ff6b8b; }
+  :root[data-theme="system"] .down, :root:not([data-theme]) .down { color: #4dabf7; }
+}
+tr.hl td { background: var(--accent-soft); }
+
+.sector-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.sector { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 6px; }
+.sector-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.sector-n { font-weight: 800; color: var(--accent); white-space: nowrap; }
+.bar { height: 6px; border-radius: 3px; background: var(--neutral-soft); overflow: hidden; }
+.bar-fill { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.sector-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.sector-names { font-size: 12.5px; color: var(--muted); }
+
+.attain { display: inline-flex; align-items: center; gap: 8px; }
+.attain-track { display: inline-block; width: 64px; height: 6px; border-radius: 3px; background: var(--neutral-soft); overflow: hidden; }
+.attain-bar { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+ul.plain { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+
+.feed { list-style: none; margin: 0; padding: 0; }
+.feed-item { padding: 9px 0; border-top: 1px solid var(--line); }
+.feed-item:first-child { border-top: 0; padding-top: 2px; }
+.feed-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 12px; }
+.feed-title { display: block; color: var(--text); line-height: 1.45; overflow-wrap: anywhere; }
+.feed.compact .feed-title { font-size: 14px; }
