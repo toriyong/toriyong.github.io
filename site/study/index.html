@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>학습 · toriyong</title>
+  <script src="../assets/theme.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+</head>
+<body data-root="../" data-tab="study">
+  <main>
+    <div class="wrap">
+      <h1>학습</h1>
+      <p class="lead">자격증 시험 일정과 공부 스케줄. 비밀번호를 입력해야 열립니다.</p>
+
+      <section class="panel lock-panel" id="lock">
+        <h2>🔒 잠긴 페이지</h2>
+        <form id="unlock-form" class="unlock" autocomplete="off">
+          <label for="pw" class="meta">비밀번호</label>
+          <input type="password" id="pw" required autocomplete="current-password">
+          <label class="remember"><input type="checkbox" id="remember"> 이 기기에서 기억 (공용 PC에서는 끄기)</label>
+          <button type="submit" id="unlock-btn">열기</button>
+          <p class="meta" id="unlock-msg" aria-live="polite"></p>
+        </form>
+        <p class="meta">내용은 AES-256-GCM 으로 암호화되어 배포되며, 비밀번호는 서버로 전송되지 않고 이 브라우저 안에서만 복호화에 쓰입니다.</p>
+      </section>
+
+      <div id="content" class="hidden">
+        <div id="banner-est" class="banner warn hidden"></div>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>D-day</h2>
+            <span class="meta"><span id="updated"></span> · <button type="button" class="link-btn" id="lock-btn">잠그기</button></span>
+          </div>
+          <div class="dday-grid" id="dday"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>공부 스케줄</h2>
+            <div class="cal-nav">
+              <button type="button" id="cal-prev" aria-label="이전 달">‹</button>
+              <span class="cal-title" id="cal-title"></span>
+              <button type="button" id="cal-next" aria-label="다음 달">›</button>
+              <button type="button" id="cal-today">오늘</button>
+            </div>
+          </div>
+          <div class="progress-row" id="progress"></div>
+          <div class="cal cal7" id="calendar"></div>
+          <ul class="agenda" id="agenda" aria-label="이번 달 공부 일정"></ul>
+          <p class="meta">날짜를 누르면 완료 체크(이 브라우저에 저장). 계획은 GitHub Secret <code>STUDY_PLAN</code>(형식: config/study.example.yml)으로 바꿀 수 있습니다.</p>
+        </section>
+
+        <section class="panel">
+          <h2>시험 일정</h2>
+          <div id="exams"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script src="../assets/common.js"></script>
+  <script src="study.js"></script>
+</body>
+</html>

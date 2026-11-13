@@ -1,0 +1,16 @@
+# 공부 스케줄 설정 예시 (공개 파일 — 실제 개인 계획은 GitHub Secret STUDY_PLAN 에 같은 형식으로 넣으세요)
+# STUDY_PLAN 이 없으면 이 예시로 화면을 만듭니다. 어느 쪽이든 배포 파일은 STUDY_PASSWORD 로 암호화됩니다.
+
+start: 2026-11-16            # 공부 시작일(월요일 권장)
+hours: { weekday: 1.5, weekend: 3 }   # 하루 공부 시간(시간)
+rest_days: [sun]             # 쉬는 요일: mon tue wed thu fri sat sun
+
+# 목표 시험: exams.yml 의 id · round, 응시 단계(written=필기부터, practical=실기만)
+targets:
+  - { exam: eis, round: 2027-1, from: practical }
+  - { exam: eip, round: 2027-1, from: written }
+
+# 단계별 비중(기간 배분) — 합이 1이 아니어도 비율로 나눔
+phases:
+  written:   [ { name: 이론 정리, weight: 6 }, { name: 기출 회독, weight: 3 }, { name: 모의고사·오답, weight: 1 } ]
+  practical: [ { name: 서술·단답 개념 정리, weight: 5 }, { name: 기출 필답 풀이, weight: 4 }, { name: 실전 모의·암기 점검, weight: 1 } ]
