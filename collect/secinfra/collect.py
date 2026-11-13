@@ -182,9 +182,23 @@ def collect_cve_global(cfg: dict, clf: Classifier) -> list[dict]:
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=c.get("days", 7))
     fmt = "%Y-%m-%dT%H:%M:%S.000"
-    data = http_get(c["url"], timeout=60, params={
-        "pubStartDate": start.strftime(fmt), "pubEndDate": end.strftime(fmt),
-        "cvssV3Severity": c.get("severity", "CRITICAL"), "resultsPerPage": 200}).json()
+    # NVD API 는 느리고 자주 시간 초과가 난다 → 3번까지 재시도(간격 늘림), API 키가 있으면 사용(호출 한도 상향)
+    params = {"pubStartDate": start.strftime(fmt), "pubEndDate": end.strftime(fmt),
+              "cvssV3Severity": c.get("severity", "CRITICAL"), "resultsPerPage": 100}
+    headers = {"apiKey": os.environ["NVD_API_KEY"]} if os.environ.get("NVD_API_KEY") else {}
+    data, last = None, None
+    for attempt in range(3):
+        try:
+            r = requests.get(c["url"], params=params, timeout=(10, 90), headers={"User-Agent": UA, **headers})
+            r.raise_for_status()
+            data = r.json()
+            break
+        except (requests.RequestException, ValueError) as e:
+            last = e
+            log(f"NVD 재시도 {attempt + 1}/3: {redact(e)}")
+            time.sleep(6 * (attempt + 1))
+    if data is None:
+        raise last
     out = []
     for v in data.get("vulnerabilities", []):
         cve = v.get("cve", {})
