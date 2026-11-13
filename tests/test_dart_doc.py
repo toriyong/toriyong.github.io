@@ -1,0 +1,37 @@
+"""실제 공시(영광와이케이엠씨 발행조건확정 신고서) 조각으로 해석 결과를 검증."""
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "collect", "market"))
+import dart_doc  # noqa: E402
+
+TEXT = open(os.path.join(os.path.dirname(__file__), "fixtures", "ykmc_confirmed.txt"), encoding="utf-8").read()
+
+
+def test_offering_values():
+    r = dart_doc.parse_offering(TEXT)
+    assert r["offer_price"] == 11000            # 정정 후 확정가 (정정 전 하단 9,400 아님)
+    assert r["band"] == [9400, 11000]
+    assert r["demand_ratio"] == 1163.35
+    assert r["lockup_ratio"] == 7.21            # 142,125,000 / 1,971,691,000
+    assert r["float_ratio"] == 34.81            # 정정 후 값 (정정 전 34.86 아님)
+    assert r["secondary_ratio"] == 21.74
+
+
+def test_xml_to_text_tables():
+    xml = ("<?xml version='1.0' encoding='utf-8'?><DOCUMENT><P>확정공모가액을 12,500원으로 결정</P>"
+           "<TABLE><TR><TD>경쟁률</TD><TD>10.5</TD><TE>1,234.56</TE></TR></TABLE></DOCUMENT>").encode()
+    t = dart_doc.xml_to_text(xml)
+    assert "경쟁률\t10.5\t1,234.56" in t
+    assert dart_doc.parse_offer_price(t) == 12500
+
+
+def test_missing_values_are_omitted():
+    assert dart_doc.parse_offering("관계없는 문서") == {}
+
+
+if __name__ == "__main__":
+    for name, fn in list(globals().items()):
+        if name.startswith("test_"):
+            fn()
+            print("ok", name)
