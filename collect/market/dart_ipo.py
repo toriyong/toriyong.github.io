@@ -56,6 +56,16 @@ KEYS = {
 }
 
 
+
+_KEY_RE = re.compile(r"(?i)\b(serviceKey|crtfc_key|api_?key|access_?token|token|key)=[^&\s'\"]+")
+
+
+def redact(msg) -> str:
+    """오류 문자열에서 URL 쿼리의 인증키 값을 지운다(공개 JSON·로그에 키가 남지 않도록)."""
+    s = _KEY_RE.sub(lambda m: m.group(1) + "=***", str(msg))
+    s = re.sub(r"for url: \S+", "", s).strip()           # requests HTTPError 의 전체 URL 제거
+    return s
+
 def now_kst() -> datetime:
     return datetime.now(KST)
 
@@ -410,14 +420,14 @@ def main() -> int:
                 with open(args.out, encoding="utf-8") as fp:
                     old = json.load(fp)
                 old["stale"] = True
-                old["stale_reason"] = str(e)[:200]
+                old["stale_reason"] = redact(e)[:200]
                 with open(args.out, "w", encoding="utf-8") as fp:
                     json.dump(old, fp, ensure_ascii=False, indent=1)
                 log("직전 데이터를 유지합니다")
                 return 0
             log("직전 데이터도 없어 빈 결과를 씁니다")
             payload = {**meta, "sample": False, "stale": True,
-                       "stale_reason": str(e)[:200], "items": []}
+                       "stale_reason": redact(e)[:200], "items": []}
 
     with open(args.out, "w", encoding="utf-8") as fp:
         json.dump(payload, fp, ensure_ascii=False, indent=1)
