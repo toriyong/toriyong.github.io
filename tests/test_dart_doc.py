@@ -35,3 +35,31 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
             print("ok", name)
+
+
+# ---- 실제 DART 원본(ZIP) 기반 회귀 테스트: 소스 줄바꿈·정정 전/후 구간 처리 확인
+import os as _os
+_FIX = _os.path.join(_os.path.dirname(__file__), "fixtures")
+
+
+def _real(rcept):
+    with open(_os.path.join(_FIX, f"dart_{rcept}.zip"), "rb") as fp:
+        return dart_doc.parse_offering(dart_doc.zip_to_text(fp.read(), rcept))
+
+
+def test_real_ykmc_confirmed():
+    v = _real("20261103000312")          # 영광와이케이엠씨 [발행조건확정]
+    assert v["offer_price"] == 11000
+    assert v["band"] == [9400, 11000]
+    assert v["demand_ratio"] == 1163.35
+    assert v["lockup_ratio"] == 7.21
+    assert v["float_ratio"] == 34.81      # 정정 후 값(정정 전 34.86 아님)
+    assert v["secondary_ratio"] == 21.74
+
+
+def test_real_mbd_below_band():
+    v = _real("20261110000253")          # 엠비디: 밴드 하단 미만 확정, 확약 0%
+    assert v["offer_price"] == 7000
+    assert v["band"] == [9600, 11700]
+    assert v["demand_ratio"] == 187.1
+    assert v["lockup_ratio"] == 0.0

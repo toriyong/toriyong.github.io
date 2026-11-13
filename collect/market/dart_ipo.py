@@ -258,7 +258,8 @@ def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[d
         code = f.get("corp_code")
         doc_rcept = f.get("confirm_rcept_no") or f.get("rcept_no")
         prev = cache.get(code) or {}
-        if doc_rcept and prev.get("doc_rcept_no") == doc_rcept and isinstance(prev.get("doc"), dict):
+        if (doc_rcept and prev.get("doc_rcept_no") == doc_rcept and isinstance(prev.get("doc"), dict)
+                and prev.get("doc_ver") == dart_doc.PARSER_VERSION):
             doc_of[code] = (doc_rcept, prev["doc"])     # 같은 문서는 다시 받지 않음
         elif doc_rcept:
             todo.append(f)
@@ -303,6 +304,7 @@ def collect(key: str, days: int, prev_items: list[dict] | None = None) -> list[d
             "confirmed": confirmed,
             "doc_rcept_no": doc_rcept,                  # None 이면 다음 실행에서 다시 시도
             "doc": doc_vals,
+            "doc_ver": dart_doc.PARSER_VERSION if doc_rcept else None,
             **doc_vals,                                 # offer_price·band·경쟁률·확약률·유통물량·구주매출
         })
     log(f"본문 해석 {parsed_n}건(신규) · {cached_n}건(캐시) · 실패 {failed_n}건 · 이월 {deferred_n}건 "

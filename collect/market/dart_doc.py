@@ -23,6 +23,9 @@ import zipfile
 
 NUM = r"[\d,]+(?:\.\d+)?"
 
+# 해석 규칙이 바뀌면 올린다 → 캐시된 이전 해석값을 버리고 다시 받는다
+PARSER_VERSION = 2
+
 
 def to_num(s: str | None) -> float | None:
     if s is None:
@@ -46,6 +49,9 @@ def xml_to_text(raw: bytes) -> str:
     else:
         s = raw.decode("utf-8", errors="ignore")
     s = re.sub(r"(?is)<(script|style).*?</\1>", "", s)
+    # 원본 XML의 소스 줄바꿈은 의미가 없다(표 칸·강조 SPAN 사이마다 들어 있음).
+    # 먼저 공백 하나로 접은 뒤, 구조 태그로만 칸(탭)·행(줄바꿈)을 만든다.
+    s = re.sub(r"\s+", " ", s)
     s = re.sub(r"(?i)</(TD|TH|TE|TU)\s*>", "\t", s)           # 칸 끝 → 탭
     s = re.sub(r"(?i)<(/TR|/P|BR|/TITLE|/SECTION-\d|/LIBRARY|/TABLE)[^>]*>", "\n", s)  # 행·문단 끝 → 줄바꿈
     s = re.sub(r"<[^>]+>", "", s)
@@ -57,12 +63,41 @@ def xml_to_text(raw: bytes) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines))
 
 
+CORR_MARK = re.compile(r"\(주\s*(\d+)\s*\)\s*정정\s*(전|후)")
+
+
+def drop_before_correction(text: str) -> str:
+    """'(주N) 정정 전' ~ '(주N) 정정 후' 구간(정정 전 원문)을 지운다.
+
+    [발행조건확정] 신고서 본문은 바뀐 부분마다 '정정 전' 원문과 '정정 후' 내용을 나란히 싣는다.
+    앞쪽 정정 대비표의 짧은 표시(전·후가 붙어 있음)는 지워도 영향이 없다.
+    """
+    marks = [(m.start(), m.group(1), m.group(2)) for m in CORR_MARK.finditer(text)]
+    cut: list[tuple[int, int]] = []
+    for i, (pos, no, kind) in enumerate(marks):
+        if kind != "전":
+            continue
+        end = next((p for p, n, k in marks[i + 1:] if n == no and k == "후"), None)
+        if end is not None:
+            cut.append((pos, end))
+    if not cut:
+        return text
+    out, last = [], 0
+    for a, b in cut:
+        if a < last:
+            continue
+        out.append(text[last:a])
+        last = b
+    out.append(text[last:])
+    return "".join(out)
+
+
 def zip_to_text(blob: bytes, rcept_no: str | None = None) -> str:
     """document.xml 응답(ZIP)에서 본문 XML을 꺼내 텍스트로. 본문 파일(접수번호.xml)을 우선."""
     with zipfile.ZipFile(io.BytesIO(blob)) as z:
         names = [n for n in z.namelist() if n.lower().endswith(".xml")]
         main = [n for n in names if rcept_no and n.startswith(rcept_no)] or names
-        return "\n".join(xml_to_text(z.read(n)) for n in main)
+        return drop_before_correction("\n".join(xml_to_text(z.read(n)) for n in main))
 
 
 # ------------------------------------------------------------------ 값 추출
@@ -141,7 +176,7 @@ def parse_lockup_ratio(text: str, price_hint: float | None) -> float | None:
 
 
 def parse_float_ratio(text: str) -> float | None:
-    m = _last(rf"상장\s*예정\s*주식\s*수\s*({NUM})\s*주\s*중\s*({NUM})\s*%에\s*해당하는\s*({NUM})\s*주는\s*상장\s*직후\s*유통\s*가능", text)
+    m = _last(rf"상장\s*예정\s*주식\s*수\s*({NUM})\s*주\s*중\s*({NUM})\s*%\s*에\s*해당하는\s*({NUM})\s*주는\s*상장\s*직후\s*유통\s*가능", text)
     return to_num(m.group(2)) if m else None
 
 
