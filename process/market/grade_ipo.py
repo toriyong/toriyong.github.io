@@ -101,6 +101,8 @@ def grade(item: dict, rule: dict) -> tuple[str, list[str]]:
     if demand is None or lockup is None:
         if not item.get("confirmed"):
             return "pending", ["수요예측 결과 공시 전 (발행조건확정 신고서 제출 후 자동 반영)"]
+        if not item.get("doc_rcept_no"):
+            return "pending", ["신고서 본문 수집 대기 — 다음 자동 수집 때 반영"]
         return "pending", ["발행조건확정 신고서에서 경쟁률·확약률을 읽지 못함 — config/ipo_manual.yml 에 직접 입력"]
 
     # 3) 단타 조건 충족 개수
