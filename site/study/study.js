@@ -1,78 +1,26 @@
-// 학습: 비밀번호로 data.enc.json 을 복호화(WebCrypto) → D-day · 공부 스케줄 캘린더 · 시험 일정
+// 학습: D-day · 공부 스케줄 캘린더 · 시험 일정 (data.json)
 (async function () {
   "use strict";
   const { h, fmt, todayKst, loadJson } = window.Hub;
   const $ = id => document.getElementById(id);
-  const KEY_STORE = "study:key";           // 복호화 키(원문 비밀번호가 아니라 PBKDF2 결과)를 저장
   const DONE = "study:done:";              // 완료 체크 localStorage 접두어
   const store = {
-    get(k, s) { try { return (s || localStorage).getItem(k); } catch (e) { return null; } },
-    set(k, v, s) { try { (s || localStorage).setItem(k, v); } catch (e) { /* 저장 불가 환경 */ } },
-    del(k) { try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch (e) { /* noop */ } },
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* 저장 불가 환경 */ } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) { /* noop */ } },
   };
-  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-  const toB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
 
-  let enc;
+  let data;
   try {
-    enc = await loadJson("data.enc.json");
+    data = await loadJson("data.json");
   } catch (e) {
-    $("unlock-msg").textContent = "아직 배포된 학습 데이터가 없습니다.";
+    $("content").replaceChildren(h("p", { class: "meta", text: "아직 학습 데이터가 없습니다. 다음 자동 배포 후 표시됩니다." }));
     return;
   }
-  if (enc.missing_password) {
-    $("unlock-msg").textContent = "관리자 설정 필요: GitHub Secret STUDY_PASSWORD 가 아직 없습니다.";
-    $("unlock-btn").disabled = true;
-    return;
-  }
-
-  async function deriveRaw(password) {
-    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-    return crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64(enc.salt), iterations: enc.iter }, base, 256);
-  }
-  async function decrypt(raw) {
-    const key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
-    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(enc.iv) }, key, b64(enc.ct));
-    return JSON.parse(new TextDecoder().decode(pt));
-  }
-  // 저장 키는 salt 와 묶어 둔다(재배포로 salt 가 바뀌면 다시 입력 요구)
-  const keyTag = () => enc.salt.slice(0, 12);
-
-  async function tryStored() {
-    const saved = store.get(KEY_STORE) || store.get(KEY_STORE, sessionStorage);
-    if (!saved) return null;
-    const [tag, raw] = saved.split(":");
-    if (tag !== keyTag()) { store.del(KEY_STORE); return null; }
-    try { return await decrypt(b64(raw)); } catch (e) { store.del(KEY_STORE); return null; }
-  }
-
-  $("unlock-form").addEventListener("submit", async ev => {
-    ev.preventDefault();
-    const pw = $("pw").value;
-    $("unlock-msg").textContent = "확인 중…";
-    $("unlock-btn").disabled = true;
-    try {
-      const raw = await deriveRaw(pw);
-      const data = await decrypt(raw);
-      const val = `${keyTag()}:${toB64(raw)}`;
-      if ($("remember").checked) store.set(KEY_STORE, val); else store.set(KEY_STORE, val, sessionStorage);
-      $("pw").value = "";
-      show(data);
-    } catch (e) {
-      $("unlock-msg").textContent = "비밀번호가 맞지 않습니다.";
-    } finally {
-      $("unlock-btn").disabled = false;
-    }
-  });
-  $("lock-btn").addEventListener("click", () => { store.del(KEY_STORE); location.reload(); });
-
-  const stored = await tryStored();
-  if (stored) show(stored);
+  show(data);
 
   // ------------------------------------------------------------------ 화면
   function show(data) {
-    $("lock").classList.add("hidden");
-    $("content").classList.remove("hidden");
     $("updated").textContent = `생성 ${fmt.stamp(data.updated_at)}`;
     render(data);
   }
