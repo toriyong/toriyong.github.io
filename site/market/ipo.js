@@ -28,8 +28,27 @@
     $("ipo-rows").replaceChildren(h("tr", null, h("td", { colspan: 10, class: "empty", text: "데이터 없음" })));
     return;
   }
-  const items = data.items || [];
   const today = todayKst();
+
+  // ---------- 표시 범위: 오늘 기준 30일
+  // 청약 시작이 30일 넘게 남은 종목은 일정 변경·철회 가능성이 커서 기본 목록에서 접어 둔다.
+  const WINDOW_DAYS = 30;
+  const LISTED_KEEP_DAYS = 14;               // 상장 완료는 최근 2주만
+  const shiftIso = (n) => {
+    const d = new Date(today + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  const horizon = shiftIso(WINDOW_DAYS);
+  const listedFrom = shiftIso(-LISTED_KEEP_DAYS);
+  const keyDate = i => i.sub_start || i.listing_date || i.rcept_dt || "9999-12-31";
+  const isLater = i => i.status === "upcoming" && !!i.sub_start && i.sub_start > horizon;
+  const isOldListed = i => i.status === "listed" && (i.listing_date || i.sub_end || "") < listedFrom;
+  const all = (data.items || []).filter(i => i.grade !== "spac" && !i.is_spac)   // 스팩 제외
+    .slice().sort((a, b) => keyDate(a).localeCompare(keyDate(b)));
+  const items = all.filter(i => !isLater(i) && !isOldListed(i));   // 요약·목록 기본 대상
+  const later = all.filter(isLater);
+  let showLater = false;
 
   // ---------- 배너 · 기준 시각
   if (data.sample) $("banner-sample").classList.remove("hidden");
@@ -48,6 +67,8 @@
       .map(([s, label]) => h("span", { class: "chip" }, [label, h("strong", { text: count(i => i.status === s && nonSpac(i)) })])),
     ...GRADE_ORDER.map(g => h("span", { class: "chip" }, [badge(g), h("strong", { text: count(i => i.grade === g) })])),
   );
+  $("window-note").textContent =
+    `오늘부터 ${WINDOW_DAYS}일 안(~${fmt.md(horizon)})에 청약하는 종목과 청약 중·상장 대기 종목, 최근 ${LISTED_KEEP_DAYS}일 상장 종목 기준 · 스팩 제외`;
 
   // ---------- 캘린더 (평일만 표시)
   const iso = d => d.toISOString().slice(0, 10);
@@ -56,7 +77,7 @@
 
   const events = {};   // 'YYYY-MM-DD' → [{kind, item}]
   const push = (day, kind, item) => (events[day] = events[day] || []).push({ kind, item });
-  for (const it of items) {
+  for (const it of all) {
     if (it.sub_start) {
       const end = it.sub_end || it.sub_start;
       for (let d = new Date(it.sub_start + "T00:00:00Z"); iso(d) <= end; d = addDays(d, 1)) push(iso(d), "sub", it);
@@ -121,13 +142,8 @@
       h("button", { type: "button", class: filter === id ? "on" : null, text: label,
         onclick: () => { filter = id; renderFilters(); renderRows(); } })));
   }
-  function renderRows() {
-    const rows = items.filter(i => filter === "all" || i.status === filter);
-    if (!rows.length) {
-      $("ipo-rows").replaceChildren(h("tr", null, h("td", { colspan: 10, class: "empty", text: "해당하는 종목이 없습니다" })));
-      return;
-    }
-    $("ipo-rows").replaceChildren(...rows.map(it => h("tr", { id: "row-" + it.corp_code }, [
+  function row(it, dim) {
+    return h("tr", { id: "row-" + it.corp_code, class: dim ? "dim" : null }, [
       h("td", { class: "name card-title" }, [h("strong", { text: it.corp_name }),
         h("span", { class: "sub-line", text: [it.market, it.sector].filter(Boolean).join(" · ") || "시장·섹터 미입력" })]),
       h("td", { "data-label": "등급" }, h("details", { class: "reasons" }, [
@@ -144,7 +160,23 @@
       h("td", { class: "num", "data-label": "확약률", text: fmt.pct(it.lockup_ratio) }),
       h("td", { class: "num", "data-label": "유통물량", text: fmt.pct(it.float_ratio) }),
       h("td", { "data-label": "공시" }, h("a", { href: it.dart_url, target: "_blank", rel: "noopener noreferrer", text: "원문" })),
-    ])));
+    ]);
+  }
+  function renderRows() {
+    const pick = i => filter === "all" || i.status === filter;
+    const rows = items.filter(pick);
+    const extra = later.filter(pick);
+    const out = rows.map(it => row(it, false));
+    if (!rows.length) out.push(h("tr", null, h("td", { colspan: 10, class: "empty", text: "30일 안에 해당하는 종목이 없습니다" })));
+    if (extra.length) {
+      out.push(h("tr", { class: "later-toggle" }, h("td", { colspan: 10 },
+        h("button", { type: "button", class: "more", "aria-expanded": String(showLater),
+          text: showLater ? `${WINDOW_DAYS}일 이후 예정 ${extra.length}건 접기`
+                          : `${WINDOW_DAYS}일 이후 예정 ${extra.length}건 보기 (일정 변경·철회 가능)`,
+          onclick: () => { showLater = !showLater; renderRows(); } }))));
+      if (showLater) out.push(...extra.map(it => row(it, true)));
+    }
+    $("ipo-rows").replaceChildren(...out);
   }
   renderFilters();
   renderRows();

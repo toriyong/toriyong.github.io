@@ -136,9 +136,13 @@ def main() -> int:
     today = datetime.now(KST).date()
 
     items = []
+    spac_n = 0
     for it in raw.get("items", []):
         it = merge_manual(it, manual)
-        g, reasons = ("spac", ["스팩(기업인수목적회사)은 등급 대상에서 제외"]) if it.get("is_spac") else grade(it, rule)
+        if it.get("is_spac"):            # 스팩은 투자 대상이 아니므로 결과에서 제외
+            spac_n += 1
+            continue
+        g, reasons = grade(it, rule)
         it.update(grade=g, reasons=reasons, status=status_of(it, today))
         items.append(it)
 
@@ -158,6 +162,7 @@ def main() -> int:
         "legend": rule.get("legend", {}),
         "thresholds": {k: rule[k] for k in ("scalp", "swing", "exclude")},
         "counts": counts,
+        "excluded_spac": spac_n,
         "items": items,
     }
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)

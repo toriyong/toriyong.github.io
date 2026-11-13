@@ -318,3 +318,14 @@ td.wrap-cell { white-space: normal; min-width: 200px; }
 /* 공모주 표(PC): 주관사는 줄바꿈 허용해서 표 폭을 줄임 */
 td.uw { white-space: normal; min-width: 90px; max-width: 160px; }
 th, td { padding: 9px 8px; }
+
+/* 공모주: 30일 이후 예정 종목 접기 */
+.window-note { margin: 10px 0 0; }
+.rcards tr.dim td { opacity: .62; }
+.rcards tr.later-toggle td { text-align: center; padding: 12px 8px; }
+.rcards tr.later-toggle .more { margin: 0; }
+@media (max-width: 720px) {
+  .rcards tr.later-toggle { border: 0; background: none; padding: 0; }
+  .rcards tr.later-toggle td { display: block; }
+  .rcards tr.later-toggle td::before { content: none; }
+}
