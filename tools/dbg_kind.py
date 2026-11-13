@@ -1,15 +1,13 @@
 import re, requests
 s = requests.Session(); s.headers["User-Agent"] = "Mozilla/5.0 toriyong.github.io collector"
 s.get("https://kind.krx.co.kr/main.do?method=loadInitPage&scrnmode=1", timeout=30)
-for u in ["https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain",
-          "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain"]:
-    t = s.get(u, timeout=30).text
-    print("PAGE", u, len(t)); print("BODY", t[:400].replace("\n"," "))
-    for m in re.finditer(r'<input[^>]+name="([^"]+)"[^>]*?(?:value="([^"]*)")?', t):
-        print("  INPUT", m.group(1), "=", m.group(2))
-    for m in re.finditer(r"method\s*[:=]\s*['\"]?(\w+)", t):
-        print("  METHOD", m.group(1))
-    for m in re.finditer(r"(url\s*:\s*['\"][^'\"]+['\"]|action=\"[^\"]+\")", t):
-        print("  URL", m.group(1))
-    for m in re.finditer(r"forward[\"']?\s*[,:=]\s*[\"']?(\w+)", t):
-        print("  FWD", m.group(1))
+s.get("https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain", timeout=30)
+url = "https://kind.krx.co.kr/listinvstg/listingcompany.do"
+base = {"currentPageSize": "50", "pageIndex": "1", "orderMode": "1", "orderStat": "D", "searchMode": "", "searchCodeType": "",
+        "repIsuSrtCd": "", "isurCd": "", "searchCorpName": "", "marketType": "", "country": "", "detailMarket": "",
+        "fromDate": "2026-09-01", "toDate": "2026-11-30", "secuGrpArrStr": "0|ST|FS|MF|SC|RT|IF|DR|", "listTypeArrStr": "01|",
+        "choicTypeArrStr": ""}
+for meth, fwd in [("searchListingTypeSub", "listingtype_sub"), ("searchListingTypeSub", "")]:
+    r = s.post(url, data={**base, "method": meth, "forward": fwd}, headers={"Referer": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain", "X-Requested-With": "XMLHttpRequest"}, timeout=30)
+    txt = re.sub(r"<[^>]+>", " ", r.text); txt = re.sub(r"\s+", " ", txt)
+    print("TRY", meth, fwd, r.status_code, len(r.text)); print("TXT", txt[:1500])
