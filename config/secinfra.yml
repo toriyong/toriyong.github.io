@@ -15,7 +15,7 @@ feeds:
   - { name: Krebs on Security, url: "https://krebsonsecurity.com/feed/",          region: global }
   - { name: CISA Advisories,  url: "https://www.cisa.gov/cybersecurity-advisories/all.xml", region: global }
   # 국내 1차 소스
-  - { name: 보안뉴스,          url: "https://www.boannews.com/media/news_rss.xml",  region: kr }
+  - { name: 보안뉴스,          url: "https://www.boannews.com/rss/allArticle.xml",  region: kr }
   - { name: 데일리시큐,        url: "https://www.dailysecu.com/rss/allArticle.xml", region: kr }
 
 # 카테고리 키워드 (제목 기준, 대소문자 무시). 여러 개에 해당하면 모두 표시.
