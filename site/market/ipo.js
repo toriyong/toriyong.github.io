@@ -25,7 +25,7 @@
     data = await loadJson("data/ipo.json");
   } catch (e) {
     $("summary").replaceChildren(h("span", { class: "meta", text: "아직 수집된 데이터가 없습니다. 첫 배포 후 자동 수집이 끝나면 표시됩니다." }));
-    $("ipo-rows").replaceChildren(h("tr", null, h("td", { colspan: 10, class: "empty", text: "데이터 없음" })));
+    $("ipo-rows").replaceChildren(h("tr", null, h("td", { colspan: 11, class: "empty", text: "데이터 없음" })));
     return;
   }
   const today = todayKst();
@@ -142,6 +142,14 @@
       h("button", { type: "button", class: filter === id ? "on" : null, text: label,
         onclick: () => { filter = id; renderFilters(); renderRows(); } })));
   }
+  function subCell(sv) {
+    if (!sv) return h("span", { class: "meta", text: "수요예측 전" });
+    const tip = [sv.basis, ...(sv.notes || []).map(n => "↓ " + n), sv.to_next].filter(Boolean);
+    return h("details", { class: "reasons" }, [
+      h("summary", null, h("span", { class: `badge sub-${sv.level}`, text: sv.label })),
+      h("ul", null, tip.map(t => h("li", { text: t }))),
+    ]);
+  }
   function row(it, dim) {
     return h("tr", { id: "row-" + it.corp_code, class: dim ? "dim" : null }, [
       h("td", { class: "name card-title" }, [h("strong", { text: it.corp_name }),
@@ -157,6 +165,7 @@
         h("span", { class: "sub-line", text: it.offer_price ? "확정" : (it.band ? `희망 ${fmt.num(it.band[0])}~${fmt.num(it.band[1])}` : "신고서 기재가") })]),
       h("td", { "data-label": "주관사", class: "uw", text: (it.underwriters || []).join(", ") || "–" }),
       h("td", { class: "num", "data-label": "경쟁률", text: fmt.ratio(it.demand_ratio) }),
+      h("td", { "data-label": "청약 판단" }, subCell(it.subscribe)),
       h("td", { class: "num", "data-label": "확약률", text: fmt.pct(it.lockup_ratio) }),
       h("td", { class: "num", "data-label": "유통물량", text: fmt.pct(it.float_ratio) }),
       h("td", { "data-label": "공시" }, h("a", { href: it.dart_url, target: "_blank", rel: "noopener noreferrer", text: "원문" })),
@@ -167,9 +176,9 @@
     const rows = items.filter(pick);
     const extra = later.filter(pick);
     const out = rows.map(it => row(it, false));
-    if (!rows.length) out.push(h("tr", null, h("td", { colspan: 10, class: "empty", text: "30일 안에 해당하는 종목이 없습니다" })));
+    if (!rows.length) out.push(h("tr", null, h("td", { colspan: 11, class: "empty", text: "30일 안에 해당하는 종목이 없습니다" })));
     if (extra.length) {
-      out.push(h("tr", { class: "later-toggle" }, h("td", { colspan: 10 },
+      out.push(h("tr", { class: "later-toggle" }, h("td", { colspan: 11 },
         h("button", { type: "button", class: "more", "aria-expanded": String(showLater),
           text: showLater ? `${WINDOW_DAYS}일 이후 예정 ${extra.length}건 접기`
                           : `${WINDOW_DAYS}일 이후 예정 ${extra.length}건 보기 (일정 변경·철회 가능)`,
@@ -186,4 +195,14 @@
   $("legend").replaceChildren(...["scalp", "swing", "watch", "exclude", "pending"]
     .filter(g => legend[g])
     .map(g => h("li", null, [badge(g), h("span", { text: legend[g].replace(/^[^—]*—\s*/, "") })])));
+
+  // ---------- 청약 판단 기준
+  const sr = data.subscribe_rule || {};
+  $("sub-legend").replaceChildren(...(sr.tiers || []).map(t =>
+    h("li", null, [h("span", { class: `badge sub-${t.level}`, text: t.label }), h("span", { text: t.desc })])));
+  const adj = [];
+  if (sr.low_lockup != null) adj.push(`확약률 ${sr.low_lockup}% 미만`);
+  if (sr.below_band_penalty) adj.push("희망밴드 하단 미만 확정");
+  $("sub-rule-note").textContent = (adj.length ? `${adj.join(", ")}이면 한 단계씩 낮춥니다. ` : "") +
+    "참고용 고정 기준이며 수익을 보장하지 않습니다. 기준값은 config/grading.yml 에서 바꿀 수 있습니다.";
 })();

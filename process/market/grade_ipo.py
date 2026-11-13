@@ -122,6 +122,33 @@ def grade(item: dict, rule: dict) -> tuple[str, list[str]]:
     return "watch", reasons
 
 
+def subscribe_check(item: dict, rule: dict) -> dict | None:
+    """경쟁률을 고정 구간과 비교해 청약 판단(적극/보통/신중/비추천)을 낸다."""
+    cfg = rule.get("subscribe") or {}
+    tiers = cfg.get("tiers") or []
+    demand = num(item.get("demand_ratio"))
+    if demand is None or not tiers:
+        return None
+    idx = next((i for i, t in enumerate(tiers) if demand >= float(t["min"])), len(tiers) - 1)
+    base = tiers[idx]
+    notes = []
+    lockup = num(item.get("lockup_ratio"))
+    if lockup is not None and cfg.get("low_lockup") is not None and lockup < float(cfg["low_lockup"]):
+        notes.append(f"확약률 {lockup:.1f}% < {cfg['low_lockup']}%")
+    band, offer = item.get("band"), num(item.get("offer_price"))
+    if cfg.get("below_band_penalty") and isinstance(band, list) and len(band) == 2 and offer and offer < float(band[0]):
+        notes.append("희망밴드 하단 미만 확정")
+    final = tiers[min(idx + len(notes), len(tiers) - 1)]
+    nxt = tiers[idx - 1] if idx > 0 else None
+    return {
+        "level": final["level"],
+        "label": final["label"],
+        "basis": f"경쟁률 {demand:,.1f}:1 → {base['label']} 구간(≥{float(base['min']):,.0f})",
+        "to_next": f"{nxt['label']}까지 {float(nxt['min']) - demand:,.0f}:1 부족" if nxt else None,
+        "notes": notes,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--raw", required=True)
@@ -143,7 +170,7 @@ def main() -> int:
             spac_n += 1
             continue
         g, reasons = grade(it, rule)
-        it.update(grade=g, reasons=reasons, status=status_of(it, today))
+        it.update(grade=g, reasons=reasons, status=status_of(it, today), subscribe=subscribe_check(it, rule))
         items.append(it)
 
     # 청약 시작일 기준 정렬(날짜 없는 항목은 뒤로)
@@ -161,6 +188,7 @@ def main() -> int:
         "stale_reason": raw.get("stale_reason"),
         "legend": rule.get("legend", {}),
         "thresholds": {k: rule[k] for k in ("scalp", "swing", "exclude")},
+        "subscribe_rule": rule.get("subscribe", {}),
         "counts": counts,
         "excluded_spac": spac_n,
         "items": items,

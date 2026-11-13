@@ -329,3 +329,10 @@ th, td { padding: 9px 8px; }
   .rcards tr.later-toggle td { display: block; }
   .rcards tr.later-toggle td::before { content: none; }
 }
+
+/* 청약 판단(경쟁률 고정 기준) */
+.sub-strong  { background: var(--good-soft); color: var(--good); }
+.sub-normal  { background: var(--accent-soft); color: var(--accent); }
+.sub-caution { background: var(--warn-soft); color: var(--warn); }
+.sub-avoid   { background: var(--bad-soft); color: var(--bad); }
+.legend + .sub-h, h3.sub-h { font-size: 15px; margin: 18px 0 8px; }
