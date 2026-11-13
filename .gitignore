@@ -226,3 +226,4 @@ site/market/data/*.json
 *.key
 .DS_Store
 Thumbs.db
+site/security/data/*.json

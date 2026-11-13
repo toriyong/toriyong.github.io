@@ -6,25 +6,111 @@
   <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>보안 · toriyong</title>
+  <title>보안 · 인프라 · toriyong</title>
   <script src="../assets/theme.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body data-root="../" data-tab="security">
   <main>
     <div class="wrap">
-      <h1>보안</h1>
-      <p class="lead">국내·해외 주요 보안 이슈와 취약점 동향</p>
-      <section class="panel soon">
-        <h2>준비 중입니다</h2>
-        <ul>
-          <li>일일 보안 브리핑 (국내·해외 주요 이슈)</li>
-          <li>신규 CVE · KEV(실제 악용 취약점) 목록</li>
-          <li>KISA 보안 공지</li>
-        </ul>
+      <h1>보안 · 인프라</h1>
+      <p class="lead">국내·해외 보안 뉴스, 실제 악용 중인 취약점, 정기 패치 일정, 지원 종료(EOL), 클라우드 상태를 한 화면에서 봅니다.</p>
+
+      <div id="banner-sample" class="banner info hidden">예시 데이터입니다. 실제 데이터가 수집되면 자동으로 바뀝니다.</div>
+      <div id="banner-error" class="banner warn hidden"></div>
+
+      <!-- 1. 오늘의 요약 -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2>오늘의 요약</h2>
+          <span class="meta" id="updated">기준 시각 –</span>
+        </div>
+        <div class="stats" id="stats"></div>
+      </section>
+
+      <nav class="jump" aria-label="섹션 바로가기">
+        <a href="#top-issues">주요 이슈</a>
+        <a href="#news">보안 뉴스</a>
+        <a href="#trend">위협 동향</a>
+        <a href="#kev">실제 악용 취약점</a>
+        <a href="#patch">패치 일정</a>
+        <a href="#infra">지원 종료(EOL)</a>
+        <a href="#cloud">클라우드 상태</a>
+      </nav>
+
+      <!-- 2. 주요 이슈 -->
+      <section class="panel" id="top-issues">
+        <div class="panel-head">
+          <h2>주요 이슈</h2>
+          <span class="meta">최근 48시간 · 심각도순</span>
+        </div>
+        <ol class="top-list" id="top-list"></ol>
+      </section>
+
+      <!-- 3. 보안 뉴스 -->
+      <section class="panel" id="news">
+        <div class="panel-head">
+          <h2>보안 뉴스 <span class="meta" id="news-count"></span></h2>
+        </div>
+        <div class="filter-rows">
+          <div class="filters" id="f-region" aria-label="지역"></div>
+          <div class="filters" id="f-sev" aria-label="심각도"></div>
+          <div class="filters" id="f-cat" aria-label="카테고리"></div>
+        </div>
+        <ul class="news-list" id="news-list"></ul>
+        <div class="more-wrap"><button type="button" class="more" id="news-more">더 보기</button></div>
+      </section>
+
+      <!-- 4. 위협 동향 -->
+      <section class="panel" id="trend">
+        <div class="panel-head">
+          <h2>위협 동향</h2>
+          <span class="meta">최근 7일 기사 수 · 카테고리별</span>
+        </div>
+        <ul class="bars" id="bars"></ul>
+      </section>
+
+      <!-- 5. 실제 악용 취약점 -->
+      <section class="panel" id="kev">
+        <div class="panel-head">
+          <h2>실제 악용 취약점 (CISA KEV)</h2>
+          <span class="meta" id="kev-meta"></span>
+        </div>
+        <p class="meta">실제 공격에 쓰인 것이 확인된 취약점입니다. 우리 환경에 해당 제품이 있으면 조치 기한 전에 패치하세요.</p>
+        <div class="table-wrap">
+          <table class="rcards">
+            <thead><tr><th>추가일</th><th>CVE</th><th>제품</th><th>취약점</th><th>조치 기한</th><th>랜섬웨어</th></tr></thead>
+            <tbody id="kev-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- 6. 패치 일정 -->
+        <section class="panel" id="patch">
+          <h2>정기 패치 일정</h2>
+          <ul class="patch-list" id="patch-list"></ul>
+        </section>
+
+        <!-- 8. 클라우드 상태 -->
+        <section class="panel" id="cloud">
+          <h2>클라우드 상태</h2>
+          <ul class="incident-list" id="incident-list"></ul>
+          <div class="link-chips" id="status-links"></div>
+        </section>
+      </div>
+
+      <!-- 7. 지원 종료 -->
+      <section class="panel" id="infra">
+        <div class="panel-head">
+          <h2>지원 종료(EOL) 일정</h2>
+          <span class="meta">180일 이내 종료 예정은 주황색</span>
+        </div>
+        <div class="eol-grid" id="eol-grid"></div>
       </section>
     </div>
   </main>
   <script src="../assets/common.js"></script>
+  <script src="secinfra.js"></script>
 </body>
 </html>
