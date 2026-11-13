@@ -16,6 +16,17 @@ exclude:          # 제외: 아래 조건 중 min_flags 개 이상 해당
   band_above_top: true       # 희망밴드 상단 초과 확정
   min_flags: 2
 
+# 청약 판단: 기관 수요예측 경쟁률을 고정 기준값과 비교 (위에서부터 처음 맞는 구간)
+# 업계에서 흔히 쓰는 참고 구간을 초기값으로 둠 — 수익을 보장하지 않으며, 백테스트 후 조정
+subscribe:
+  tiers:
+    - { min: 1000, level: strong,  label: "적극",   desc: "1,000:1 이상 — 기관 수요가 매우 강함" }
+    - { min: 500,  level: normal,  label: "보통",   desc: "500~1,000:1 — 무난, 확약률·유통물량을 함께 확인" }
+    - { min: 300,  level: caution, label: "신중",   desc: "300~500:1 — 수요가 약한 편, 소액 또는 건너뛰기" }
+    - { min: 0,    level: avoid,   label: "비추천", desc: "300:1 미만 — 상장일 공모가 하회 위험이 큼" }
+  low_lockup: 5          # 확약률(%)이 이 값 미만이면 한 단계 낮춤
+  below_band_penalty: true   # 희망밴드 하단 미만으로 확정되면 한 단계 낮춤
+
 legend:
   scalp: "단타 ⭐⭐ — 경쟁률·확약률·유통물량 3개 조건 모두 충족"
   swing: "스윙 ⭐ — 3개 조건 중 2개 충족"
