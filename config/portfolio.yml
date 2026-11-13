@@ -41,12 +41,19 @@ skills:
 
 certifications:
   # status: earned(취득) | preparing(준비 중)
-  # preparing 항목에 exam 과 round 를 적으면 학습 탭의 시험 일정과 자동으로 연결됩니다.
-  - { name: ISRM (정보보안위험관리사), status: earned, year: "TODO" }
+  # 날짜 필드
+  #   earned   → date: 취득일(YYYY-MM-DD) 또는 year: "2024"
+  #   preparing→ exam_date: 응시 예정일. 학습 탭 일정과 연결하려면 exam/round 를 적는다
+  #              (exam/round 가 있으면 config/exams.yml 에서 날짜를 자동으로 가져온다)
+  # 합격 처리는 /about/?edit=1 에서 '합격' 버튼을 누르면 이슈 → PR 로 반영된다.
+  - { name: ISRM (정보보안위험관리사), status: earned, year: "TODO", org: 한국정보보호산업협회 }
+  - { name: "CKA (Certified Kubernetes Administrator)", status: preparing,
+      exam_date: 2026-12-15, org: CNCF / Linux Foundation }
+  - { name: "AZ-104 Azure Administrator Associate", status: preparing, org: Microsoft }
+  - { name: "PMP (Project Management Professional)", status: preparing, org: PMI }
   - { name: 정보보안기사, status: preparing, exam: eis, round: 2027-1, note: 실기 응시 예정 }
   - { name: 정보처리기사, status: preparing, exam: eip, round: 2027-1, note: 실기 응시 예정 }
-  - { name: "AZ-104 Azure Administrator Associate", status: preparing }
-  - { name: "SC-500 Microsoft Security Operations Analyst", status: preparing }
+  - { name: "SC-500 Microsoft Security Operations Analyst", status: preparing, org: Microsoft }
 
 projects:
   - title: AKS 클러스터 버전 업그레이드

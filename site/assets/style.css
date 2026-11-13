@@ -613,3 +613,8 @@ textarea.note { width: 100%; box-sizing: border-box; font: inherit; line-height:
 .pf-proj-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 .pf-proj-sum { margin: 6px 0 8px; max-width: 72ch; line-height: 1.7; }
 @media (max-width: 560px) { .pf-skill-row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+.pf-cert-act { flex: none; display: flex; gap: 6px; margin-left: auto; }
+.pf-btn { padding: 3px 10px; font-size: 12.5px; text-decoration: none; color: var(--text); border: 1px solid var(--line); border-radius: 7px; }
+.pf-btn:hover { border-color: var(--accent); color: var(--accent); }
+.pf-btn.on { color: var(--accent); border-color: var(--accent); font-weight: 600; }
+.pf-edit-foot { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }

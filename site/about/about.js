@@ -3,6 +3,16 @@
   "use strict";
   const { h, fmt, loadJson } = window.Hub;
   const $ = id => document.getElementById(id);
+  const ISSUE = "https://github.com/toriyong/toriyong.github.io/issues/new";
+  // /about/?edit=1 로 열면 자격증 옆에 편집 버튼이 나온다(남에게 보일 땐 숨김)
+  const edit = new URLSearchParams(location.search).get("edit") === "1";
+
+  function certHref(action, name, date) {
+    const p = new URLSearchParams({ template: "cert.yml", title: `[자격증] ${name}`, action, name });
+    if (date) p.set("date", date);
+    return `${ISSUE}?${p.toString()}`;
+  }
+  const todayKstIso = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
 
   let d;
   try {
@@ -37,19 +47,31 @@
 
   function certRow(c) {
     const on = c.status === "earned";
+    const when = c.date || c.year;
+    const dday = c.exam_date ? Math.ceil((new Date(c.exam_date + "T00:00:00+09:00") - Date.now()) / 86400e3) : null;
     return h("li", { class: "pf-cert" }, [
       h("span", { class: `pf-badge ${on ? "on" : "prep"}`, text: on ? "취득" : "준비 중" }),
       h("div", { class: "pf-cert-main" }, [
         h("strong", { text: c.name }),
         h("span", { class: "meta" }, [
-          [c.year, c.org, c.note].filter(Boolean).join(" · "),
-          c.exam_date ? ` · 응시 예정 ${c.exam_date}${c.estimated ? " (공고 전 추정)" : ""}` : null,
+          [when, c.org, c.note].filter(Boolean).join(" · "),
+          c.exam_date ? `${when || c.org || c.note ? " · " : ""}응시 예정 ${c.exam_date}${c.estimated ? " (공고 전 추정)" : ""}${dday !== null && dday >= 0 ? ` · D-${dday}` : ""}` : null,
         ]),
       ]),
+      edit && !on ? h("div", { class: "pf-cert-act" }, [
+        h("a", { class: "pf-btn on", href: certHref("합격", c.name, todayKstIso()), target: "_blank", rel: "noopener noreferrer",
+                 title: `${c.name} 합격으로 변경`, text: "합격" }),
+        h("a", { class: "pf-btn", href: certHref("응시 일정 변경", c.name, c.exam_date || ""), target: "_blank", rel: "noopener noreferrer",
+                 title: `${c.name} 응시 예정일 변경`, text: "일정" }),
+      ]) : null,
     ]);
   }
-  $("pf-certs").replaceChildren(h("ul", { class: "pf-list" },
-    [...earned, ...preparing].map(certRow)));
+  $("pf-certs").replaceChildren(
+    h("ul", { class: "pf-list" }, [...earned, ...preparing].map(certRow)),
+    edit ? h("div", { class: "pf-edit-foot" }, [
+      h("a", { class: "pf-btn", href: `${ISSUE}?template=cert.yml&action=%EC%B6%94%EA%B0%80`, target: "_blank", rel: "noopener noreferrer", text: "＋ 자격증 추가" }),
+      h("span", { class: "meta", text: "버튼을 누르면 GitHub 이슈가 열리고, 제출하면 자동으로 PR 이 만들어집니다. 머지하면 반영됩니다." }),
+    ]) : h("p", { class: "meta", text: "" }));
 
   // ---------- 학습 현황 (완료 체크가 아니라 커리큘럼 경과 기준)
   const s = d.study || {};

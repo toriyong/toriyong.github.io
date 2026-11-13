@@ -40,6 +40,8 @@ def iso(v):
         return v.isoformat()[:10]
     if isinstance(v, list):
         return [iso(x) for x in v]
+    if isinstance(v, dict):
+        return {k: iso(x) for k, x in v.items()}
     return v
 
 
