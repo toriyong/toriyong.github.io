@@ -25,11 +25,11 @@ jobs:
     steps:
       # PR을 연달아 머지하면 대기열에 있던 '이전 커밋' 실행이 나중에 끝나 최신 배포를 덮어쓸 수 있다.
       # 어떤 실행이든 시작 시점의 main 최신 커밋으로 빌드해, 마지막 배포가 항상 최신 코드가 되게 한다.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -38,7 +38,7 @@ jobs:
 
       - name: Configure Pages
         id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       # 수집 실패 시 화면이 비지 않도록, 현재 배포된 원천 데이터를 먼저 받아 둔다
       - name: Fetch previous data
@@ -121,7 +121,7 @@ jobs:
             -e "s#(src=\"[^\"?]+\.js)\"#\1?v=${v}\"#g"
           grep -ho '\.\(css\|js\)?v=[0-9a-f]*' site/index.html site/market/index.html | sort -u || true
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -133,4 +133,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
