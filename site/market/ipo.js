@@ -30,16 +30,27 @@
   }
   const today = todayKst();
 
-  // ---------- 표시 범위: 오늘 기준 30일
-  // 청약 시작이 30일 넘게 남은 종목은 일정 변경·철회 가능성이 커서 기본 목록에서 접어 둔다.
-  const WINDOW_DAYS = 30;
+  // ---------- 표시 범위: 오늘 기준 영업일 15일(약 3주)
+  // 청약 시작이 그보다 늦은 종목은 일정 변경·철회 가능성이 커서 기본 목록에서 접어 둔다.
+  const WINDOW_DAYS = 15;                    // 영업일(평일) 기준 ≈ 3주
   const LISTED_KEEP_DAYS = 14;               // 상장 완료는 최근 2주만
   const shiftIso = (n) => {
     const d = new Date(today + "T00:00:00Z");
     d.setUTCDate(d.getUTCDate() + n);
     return d.toISOString().slice(0, 10);
   };
-  const horizon = shiftIso(WINDOW_DAYS);
+  // 오늘부터 평일만 세어 WINDOW_DAYS 번째 날까지 (공휴일은 반영하지 않음)
+  const addBizDays = (n) => {
+    const d = new Date(today + "T00:00:00Z");
+    let left = n;
+    while (left > 0) {
+      d.setUTCDate(d.getUTCDate() + 1);
+      const w = d.getUTCDay();
+      if (w !== 0 && w !== 6) left--;
+    }
+    return d.toISOString().slice(0, 10);
+  };
+  const horizon = addBizDays(WINDOW_DAYS);
   const listedFrom = shiftIso(-LISTED_KEEP_DAYS);
   const keyDate = i => i.sub_start || i.listing_date || i.rcept_dt || "9999-12-31";
   const isLater = i => i.status === "upcoming" && !!i.sub_start && i.sub_start > horizon;
@@ -111,7 +122,7 @@
   }
   renderSummary();
   $("window-note").textContent =
-    `오늘부터 ${WINDOW_DAYS}일 안(~${fmt.md(horizon)})에 청약하는 종목과 청약 중·상장 대기 종목, 최근 ${LISTED_KEEP_DAYS}일 상장 종목 기준 · 스팩 제외`;
+    `오늘부터 영업일 ${WINDOW_DAYS}일 안(~${fmt.md(horizon)})에 청약하는 종목과 청약 중·상장 대기 종목, 최근 ${LISTED_KEEP_DAYS}일 상장 종목 기준 · 스팩 제외`;
 
   // ---------- 캘린더 (평일만 표시)
   const iso = d => d.toISOString().slice(0, 10);
@@ -219,12 +230,12 @@
     const rows = items.filter(pick);
     const extra = later.filter(pick);
     const out = rows.map(it => row(it, false));
-    if (!rows.length) out.push(h("tr", null, h("td", { colspan: 11, class: "empty", text: "30일 안에 해당하는 종목이 없습니다" })));
+    if (!rows.length) out.push(h("tr", null, h("td", { colspan: 11, class: "empty", text: "기간 안에 해당하는 종목이 없습니다" })));
     if (extra.length) {
       out.push(h("tr", { class: "later-toggle" }, h("td", { colspan: 11 },
         h("button", { type: "button", class: "more", "aria-expanded": String(showLater),
-          text: showLater ? `${WINDOW_DAYS}일 이후 예정 ${extra.length}건 접기`
-                          : `${WINDOW_DAYS}일 이후 예정 ${extra.length}건 보기 (일정 변경·철회 가능)`,
+          text: showLater ? `${fmt.md(horizon)} 이후 예정 ${extra.length}건 접기`
+                          : `${fmt.md(horizon)} 이후 예정 ${extra.length}건 보기 (일정 변경·철회 가능)`,
           onclick: () => { showLater = !showLater; renderRows(); } }))));
       if (showLater) out.push(...extra.map(it => row(it, true)));
     }
