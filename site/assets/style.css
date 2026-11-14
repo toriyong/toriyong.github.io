@@ -652,6 +652,8 @@ svg.spark.flat polyline { stroke: var(--muted); }
 .nt-body pre { margin: 10px 0; padding: 12px 14px; overflow-x: auto; background: var(--panel-2, rgba(127,127,127,.08)); border: 1px solid var(--line); border-radius: 8px; }
 .nt-body code { font-size: 13px; }
 .nt-body p code { padding: 1px 5px; background: var(--panel-2, rgba(127,127,127,.1)); border-radius: 4px; }
-.nt-table { width: 100%; margin: 10px 0; border-collapse: collapse; font-size: 14px; }
+.nt-scroll { margin: 10px 0; overflow-x: auto; }
+.nt-table { width: 100%; min-width: 420px; margin: 0; border-collapse: collapse; font-size: 14px; }
+.nt-body { min-width: 0; }
 .nt-table th, .nt-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
 .nt-table th { color: var(--muted); font-weight: 600; }
