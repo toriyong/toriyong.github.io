@@ -33,6 +33,20 @@
   $("pf-links").replaceChildren(...(p.links || []).map(l =>
     h("a", { class: "pf-link", href: l.url, target: "_blank", rel: "noopener noreferrer", text: l.label })));
 
+  // ---------- 경력
+  const career = d.career || [];
+  $("pf-career-note").textContent = career.length ? (career[0].period || "") : "";
+  $("pf-career").replaceChildren(...career.map(c => h("article", { class: "pf-job" }, [
+    h("div", { class: "pf-job-head" }, [
+      h("div", null, [
+        h("strong", { text: c.company }),
+        h("span", { class: "pf-job-title", text: [c.team, c.title].filter(Boolean).join(" · ") }),
+      ]),
+      h("span", { class: "meta", text: c.period }),
+    ]),
+    h("ul", { class: "points" }, (c.points || []).map(t => h("li", { text: t }))),
+  ])));
+
   // ---------- 보유 기술
   $("pf-skills").replaceChildren(...(d.skills || []).map(g => h("div", { class: "pf-skill-row" }, [
     h("div", { class: "pf-skill-group", text: g.group }),
@@ -112,6 +126,17 @@
     h("p", { class: "pf-proj-sum", text: x.summary }),
     h("div", { class: "pf-chips" }, (x.stack || []).map(t => h("span", { class: "pf-chip sm", text: t }))),
   ])));
+
+  // ---------- 교육·훈련
+  const tr = d.training || [];
+  if (!tr.length) $("pf-train-panel").classList.add("hidden");
+  else $("pf-train").replaceChildren(h("ul", { class: "pf-list" }, tr.map(t => h("li", { class: "pf-cert" }, [
+    h("div", { class: "pf-cert-main" }, [
+      h("strong", { text: t.name }),
+      h("span", { class: "meta", text: [t.org, t.period].filter(Boolean).join(" · ") }),
+      t.note ? h("span", { class: "meta", text: t.note }) : null,
+    ]),
+  ]))));
 
   // ---------- 학력
   const edu = d.education || [];
