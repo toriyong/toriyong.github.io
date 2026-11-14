@@ -35,7 +35,7 @@
 
   // ---------- 경력
   const career = d.career || [];
-  $("pf-career-note").textContent = career.length ? (career[0].period || "") : "";
+  $("pf-career-note").textContent = [d.career_total, career.length > 1 ? `${career.length}개사` : null].filter(Boolean).join(" · ");
   $("pf-career").replaceChildren(...career.map(c => h("article", { class: "pf-job" }, [
     h("div", { class: "pf-job-head" }, [
       h("div", null, [
