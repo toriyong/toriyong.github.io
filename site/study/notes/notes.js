@@ -45,6 +45,14 @@
         out.push(h("pre", null, h("code", { text: buf.join("\n") })));
         continue;
       }
+      const im = line.match(/^!\[([^\]]*)\]\(([^)]+)\)\s*$/);  // 이미지 (캡션 = alt)
+      if (im) {
+        out.push(h("figure", { class: "nt-fig" }, [
+          h("img", { src: im[2], alt: im[1], loading: "lazy", decoding: "async" }),
+          im[1] ? h("figcaption", { text: im[1] }) : null,
+        ]));
+        i++; continue;
+      }
       const hd = line.match(/^(#{2,4})\s+(.*)$/);   // 제목
       if (hd) { out.push(inline(h("h" + hd[1].length, { class: "nt-h" }), hd[2])); i++; continue; }
       if (/^\s*[-*]\s+/.test(line)) {               // 목록
@@ -77,7 +85,7 @@
       if (!line.trim()) { i++; continue; }
       const buf = [line];                            // 문단
       i++;
-      while (i < lines.length && lines[i].trim() && !/^(#{2,4}\s|```|\s*[-*]\s|\s*\d+\.\s|\s*\|)/.test(lines[i])) buf.push(lines[i++]);
+      while (i < lines.length && lines[i].trim() && !/^(#{2,4}\s|```|!\[|\s*[-*]\s|\s*\d+\.\s|\s*\|)/.test(lines[i])) buf.push(lines[i++]);
       out.push(inline(h("p", { class: "nt-p" }), buf.join(" ")));
     }
     return out;
