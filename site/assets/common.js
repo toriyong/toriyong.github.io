@@ -35,15 +35,21 @@
   }
 
   function renderHeader() {
-    const nav = h("nav", { class: "tabs", "aria-label": "탭" },
+    // data-nav="none" 인 페이지(소개)는 탭을 그리지 않는다.
+    // 포트폴리오로 링크를 보냈을 때 증시 같은 다른 탭이 함께 보이지 않도록.
+    const bare = body.dataset.nav === "none";
+    const nav = bare ? null : h("nav", { class: "tabs", "aria-label": "탭" },
       TABS.map(t => h("a", {
         href: root + t.href,
         class: t.id === current ? "active" : null,
         "aria-current": t.id === current ? "page" : null,
         text: t.label,
       })));
+    const brand = bare
+      ? h("span", { class: "brand", text: "toriyong" })
+      : h("a", { class: "brand", href: root, text: "toriyong" });
     const header = h("header", { class: "site-header" },
-      h("div", { class: "wrap" }, [h("a", { class: "brand", href: root, text: "toriyong" }), nav, renderThemeSwitch()]));
+      h("div", { class: "wrap" }, [brand, nav, renderThemeSwitch()]));
     body.prepend(header);
   }
 
@@ -116,6 +122,8 @@
   }
 
   function renderFooter() {
+    // 소개 페이지는 투자 관련 고지가 어울리지 않으므로 푸터를 두지 않는다.
+    if (body.dataset.nav === "none") return;
     const footer = h("footer", { class: "site-footer" }, h("div", { class: "wrap" }, [
       h("p", { text: "이 사이트는 공개 데이터를 정리해 보여 주는 정보 사이트이며, 투자 권유나 매매 추천을 하지 않습니다. 투자 판단과 책임은 본인에게 있습니다." }),
       h("p", { text: "데이터 출처: 금융감독원 OpenDART, 한국거래소 KIND, 금융위원회 주식시세정보(공공데이터포털), CISA KEV, endoflife.date, 각 언론사·기관 RSS(제목과 링크만 표시). 원문을 반드시 확인하세요." }),
