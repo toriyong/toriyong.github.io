@@ -662,3 +662,5 @@ svg.spark.flat polyline { stroke: var(--muted); }
 .nt-fig { margin: 14px 0; }
 .nt-fig img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2, rgba(127,127,127,.06)); }
 .nt-fig figcaption { margin-top: 6px; font-size: 13px; color: var(--muted); }
+
+.nt-cnt { margin-left: 6px; font-weight: 400; }
