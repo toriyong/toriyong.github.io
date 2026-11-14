@@ -5,10 +5,9 @@
 days: 7                 # 최근 며칠치 보관
 
 # ---------------------------------------------------------------- 1. 공식 보안 공지
+# 금융보안원(fsec.or.kr)은 GitHub Actions 러너에서 접속이 막혀(연결 타임아웃) 제외했습니다.
 official:
   - { org: KISA,       name: "KISA 보안공지",       type: rss,  url: "https://knvd.krcert.or.kr/rss/security/notice" }
-  - { org: 금융보안원,  name: "금융보안원 보도자료",   type: fsec, menu: 69,   base: "https://www.fsec.or.kr" }
-  - { org: 금융보안원,  name: "금융보안원 취약점 정보", type: fsec, menu: 1009, base: "https://www.fsec.or.kr" }
   - { org: CISA,       name: "CISA Advisories",    type: rss,  url: "https://www.cisa.gov/cybersecurity-advisories/all.xml" }
 official_max: 40
 
