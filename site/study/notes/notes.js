@@ -54,9 +54,10 @@
         continue;
       }
       if (/^\s*\d+\.\s+/.test(line)) {             // 번호 목록
+        const start = parseInt(line.match(/^\s*(\d+)\./)[1], 10);
         const items = [];
         while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*\d+\.\s+/, ""));
-        out.push(h("ol", { class: "points" }, items.map(t => inline(h("li"), t))));
+        out.push(h("ol", { class: "points", start: start > 1 ? start : null }, items.map(t => inline(h("li"), t))));
         continue;
       }
       if (/^\s*\|/.test(line)) {                    // 표
@@ -66,10 +67,10 @@
           .map(r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
         if (cells.length) {
           const head = cells.shift();
-          out.push(h("table", { class: "nt-table" }, [
+          out.push(h("div", { class: "nt-scroll" }, h("table", { class: "nt-table" }, [
             h("thead", null, h("tr", null, head.map(c => inline(h("th"), c)))),
             h("tbody", null, cells.map(r => h("tr", null, r.map(c => inline(h("td"), c))))),
-          ]));
+          ])));
         }
         continue;
       }
@@ -95,10 +96,10 @@
   const one = want && notes.find(n => n.id === want);
   if (one) {
     document.title = `${one.title} · 기술 노트`;
-    document.querySelector("h1").textContent = one.title;
-    document.querySelector(".lead").textContent = [one.topic_name, one.updated].filter(Boolean).join(" · ");
-    document.querySelectorAll(".banner, .panel").forEach(el => el.remove());
-    document.querySelector(".wrap").append(
+    document.querySelector("main h1").textContent = one.title;
+    document.querySelector("main .lead").textContent = [one.topic_name, one.updated].filter(Boolean).join(" · ");
+    document.querySelectorAll("main .banner, main .panel").forEach(el => el.remove());
+    document.querySelector("main .wrap").append(
       h("article", { class: "panel nt-body" }, markdown(one.body || "본문이 없습니다.")),
       h("p", { class: "meta" }, h("a", { href: "./", text: "← 기술 노트 목록" })));
     return;
