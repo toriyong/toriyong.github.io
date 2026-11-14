@@ -31,3 +31,9 @@ notes:
   - { id: linux-vuln-remediation, topic: network, title: "리눅스 취약점 조치 실무", updated: 2026-11-14 }
   - { id: monitoring-threshold, topic: backup, title: "모니터링 지표 설계와 임계치 잡기", updated: 2026-11-14 }
   - { id: backup-failure-triage, topic: backup, title: "백업 실패 유형별 진단", updated: 2026-11-14 }
+  - { id: nfs-mount-operations, topic: storage, title: "NFS 마운트 옵션과 멈춤·끊김 처리", updated: 2026-11-14 }
+  - { id: storage-performance-metrics, topic: storage, title: "스토리지 성능 지표 읽는 법", updated: 2026-11-14 }
+  - { id: nginx-reverse-proxy, topic: container, title: "NGINX 리버스 프록시 설정과 502·504 진단", updated: 2026-11-14 }
+  - { id: k8s-resource-limits, topic: container, title: "쿠버네티스 requests·limits 와 OOMKilled", updated: 2026-11-14 }
+  - { id: cloud-iam-design, topic: cloud, title: "Azure·OCI 권한 설계 기준", updated: 2026-11-14 }
+  - { id: cloud-cost-control, topic: cloud, title: "클라우드 비용 원인 찾기와 줄이기", updated: 2026-11-14 }
