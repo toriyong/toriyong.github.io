@@ -139,7 +139,9 @@ def main() -> int:
     data = {
         "updated_at": datetime.now(KST).isoformat(timespec="seconds"),
         "profile": iso(pf.get("profile") or {}),
+        "career": iso(pf.get("career") or []),
         "education": iso(pf.get("education") or []),
+        "training": iso(pf.get("training") or []),
         "skills": iso(pf.get("skills") or []),
         "certifications": certs,
         "projects": iso(pf.get("projects") or []),
@@ -148,7 +150,7 @@ def main() -> int:
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as fp:
         json.dump(data, fp, ensure_ascii=False, separators=(",", ":"))
-    log(f"프로젝트 {len(data['projects'])}개, 자격증 {len(certs)}개 → {args.out}")
+    log(f"경력 {len(data['career'])} · 프로젝트 {len(data['projects'])} · 자격증 {len(certs)} · 교육 {len(data['training'])} → {args.out}")
     return 0
 
 
