@@ -1,0 +1,97 @@
+# 포트폴리오 페이지 내용. 이 파일만 고치면 /about/ 페이지가 바뀝니다.
+#
+# ⚠️ 공개 전 확인
+#   - 지금은 검색 색인이 차단되어 있습니다(site/about/index.html 의 robots meta).
+#     링크를 받은 사람만 볼 수 있습니다. 공개하려면 그 한 줄을 지우세요.
+#   - TODO 로 표시한 곳은 직접 채우거나 지우세요. 제가 추측해 적은 값이 섞여 있습니다.
+#   - 회사명·고객사명을 쓸 때는 공개해도 되는 범위인지 확인하세요.
+#     고객사는 'DL 관계사' 처럼 뭉뚱그리거나 '국내 대기업 그룹사' 로 바꾸는 편이 안전합니다.
+
+profile:
+  name: 이윤성
+  headline: 하이브리드 인프라 아키텍트
+  summary: >-
+    온프레미스(IDC)와 퍼블릭 클라우드를 함께 운영하는 하이브리드 환경을 10년 이상 다뤄 왔습니다.
+    서버 가상화와 OS 운영에서 출발해 Azure·OCI 기반의 클라우드 전환과 Kubernetes 운영,
+    그리고 접근제어·취약점 대응 같은 보안 영역까지 범위를 넓혀 왔습니다.
+    장애를 끝까지 파고들어 원인을 찾고, 같은 일이 반복되지 않도록 절차와 문서로 남기는 것을 중요하게 생각합니다.
+  # 공개 범위에 맞춰 지우거나 채우세요. 이메일은 수집 봇의 표적이 되므로 권장하지 않습니다.
+  links:
+    - { label: GitHub, url: https://github.com/toriyong }
+    # - { label: LinkedIn, url: "TODO" }
+
+education:
+  - school: 서강대학교 AI·SW대학원
+    period: 2025.09 ~ 재학 중
+    note: 인공지능·소프트웨어 전공
+
+skills:
+  - group: 퍼블릭 클라우드
+    items: [Microsoft Azure, Oracle Cloud Infrastructure, Naver Cloud Platform]
+  - group: 컨테이너·오케스트레이션
+    items: [Kubernetes, AKS, Docker]
+  - group: 가상화·서버
+    items: [VMware vSphere, Windows Server, Active Directory, Linux (Rocky·Ubuntu·RHEL)]
+  - group: 네트워크·웹
+    items: [L2/L3 스위칭, 방화벽, 로드밸런서, NGINX, DNS]
+  - group: 보안
+    items: [Microsoft Defender for Cloud, 서버 접근제어, 취약점 점검, 계정·권한 관리]
+  - group: 자동화·도구
+    items: [PowerShell, Bash, Azure CLI, kubectl, OCI CLI, Git]
+
+certifications:
+  # status: earned(취득) | preparing(준비 중)
+  # 날짜 필드
+  #   earned   → date: 취득일(YYYY-MM-DD) 또는 year: "2024"
+  #   preparing→ exam_date: 응시 예정일. 학습 탭 일정과 연결하려면 exam/round 를 적는다
+  #              (exam/round 가 있으면 config/exams.yml 에서 날짜를 자동으로 가져온다)
+  # 합격 처리는 /about/?edit=1 에서 '합격' 버튼을 누르면 이슈 → PR 로 반영된다.
+  - { name: ISRM (정보보안위험관리사), status: earned, year: "TODO", org: 한국정보보호산업협회 }
+  - { name: "CKA (Certified Kubernetes Administrator)", status: preparing,
+      exam_date: 2026-12-15, org: CNCF / Linux Foundation }
+  - { name: "AZ-104 Azure Administrator Associate", status: preparing, org: Microsoft }
+  - { name: "PMP (Project Management Professional)", status: preparing, org: PMI }
+  - { name: 정보보안기사, status: preparing, exam: eis, round: 2027-1, note: 실기 응시 예정 }
+  - { name: 정보처리기사, status: preparing, exam: eip, round: 2027-1, note: 실기 응시 예정 }
+  - { name: "SC-500 Microsoft Security Operations Analyst", status: preparing, org: Microsoft }
+
+projects:
+  - title: AKS 클러스터 버전 업그레이드
+    period: 2026
+    role: 설계·작업계획 수립·수행
+    summary: >-
+      운영 중인 AKS 클러스터를 상위 버전으로 올리는 작업을 맡았습니다.
+      API 변경으로 깨질 리소스를 먼저 조사하고, 노드 풀을 순차 교체해 서비스 중단 없이 올리는
+      절차를 작업계획서로 정리한 뒤 수행했습니다.
+    stack: [AKS, Kubernetes, Azure CLI, kubectl]
+
+  - title: Azure Arc 온보딩과 Defender for Servers 적용
+    period: 2026
+    role: 설계·구축
+    summary: >-
+      온프레미스 IDC 와 OCI 에 흩어져 있던 서버를 Azure Arc 로 한곳에서 관리하도록 온보딩하고,
+      Defender for Servers 를 적용해 취약점·위협 탐지 체계를 붙였습니다.
+      구독을 나눠 회사별로 비용이 구분되도록 구성했습니다.
+    stack: [Azure Arc, Defender for Cloud, Azure Policy, 하이브리드 인프라]
+
+  - title: Kubernetes 접근제어 체계 구축
+    period: 2026
+    role: 설계·구축
+    summary: >-
+      서버 접근제어에만 쓰던 접근제어 솔루션의 적용 범위를 Kubernetes 까지 넓혔습니다.
+      누가 어떤 클러스터에 어떤 권한으로 들어갈 수 있는지를 한곳에서 통제하고
+      접속 기록이 남도록 구성했습니다.
+    stack: [Kubernetes, RBAC, 접근제어 솔루션, 감사 로그]
+
+  - title: 인프라·증시 정보 자동 수집 사이트
+    period: 2026
+    role: 기획·개발·운영
+    url: https://toriyong.github.io
+    summary: >-
+      보안 공지와 CVE, 공모주 일정, 자격증 학습 진도를 자동으로 모아 보여 주는 정적 사이트입니다.
+      GitHub Actions 가 하루 여섯 번 공개 API 와 RSS 를 수집해 JSON 으로 떨구고,
+      브라우저는 그 JSON 만 읽습니다. 서버가 없으니 운영 비용이 들지 않고,
+      수집에 실패해도 직전 데이터를 그대로 보여 주도록 만들었습니다.
+    stack: [GitHub Actions, Python, 정적 웹, OpenDART, 공공데이터포털]
+
+# 학습 현황은 config/exams.yml 과 학습 단원 수에서 자동으로 계산합니다(여기서 쓸 것 없음).
