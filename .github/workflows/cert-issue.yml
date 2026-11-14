@@ -1,6 +1,7 @@
 # 자격증 이슈(폼) → config/portfolio.yml 의 자격증 목록 수정 PR 자동 생성
 # - 저장소 소유자가 연 이슈만 처리(공개 저장소라 다른 사람의 이슈는 무시하고 닫음)
-# - 바로 반영하지 않고 PR 로 올려 검토 후 머지하는 기존 방식 유지
+# - 본인이 폼에 적은 값이 설정 파일에 그대로 들어가는 변경이라 PR 생성 후 자동 머지한다
+#   (기록은 PR 로 남으므로 잘못되면 그 PR 만 되돌리면 된다)
 name: Cert from issue
 
 on:
@@ -63,7 +64,12 @@ jobs:
           url=$(gh pr create -R "$GITHUB_REPOSITORY" --base main --head "$branch" \
                 --title "자격증: $SUMMARY" \
                 --body "이슈 #$NUM 의 요청을 config/portfolio.yml 에 반영했습니다. 확인 후 머지하면 다음 배포부터 소개 페이지에 표시됩니다. Closes #$NUM")
-          gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" -b "PR을 만들었습니다: $url — 머지하면 반영됩니다."
+          # 설정 파일만 바뀌는 변경이라 바로 머지한다. 실패하면 PR 을 열어 둔 채 알린다.
+          if gh pr merge "$url" -R "$GITHUB_REPOSITORY" --squash --delete-branch; then
+            gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" -b "반영했습니다($url). 다음 배포(5분 내외)부터 소개 페이지에 표시됩니다."
+          else
+            gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" -b "PR을 만들었지만 자동 머지에 실패했습니다. 직접 머지해 주세요: $url"
+          fi
 
       - name: Report failure
         if: failure() && github.event.issue.user.login == github.repository_owner
