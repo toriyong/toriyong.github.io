@@ -657,3 +657,8 @@ svg.spark.flat polyline { stroke: var(--muted); }
 .nt-body { min-width: 0; }
 .nt-table th, .nt-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
 .nt-table th { color: var(--muted); font-weight: 600; }
+
+/* 기술 노트 본문 이미지 */
+.nt-fig { margin: 14px 0; }
+.nt-fig img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2, rgba(127,127,127,.06)); }
+.nt-fig figcaption { margin-top: 6px; font-size: 13px; color: var(--muted); }
