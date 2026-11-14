@@ -22,6 +22,8 @@ profile:
   links:
     - { label: GitHub, url: https://github.com/toriyong }
 
+# career_total: 경력 패널 제목 옆에 표시할 문구
+career_total: 총 10년 10개월
 career:
   - company: 링네트
     team: DI 기술팀 / 기술 1팀

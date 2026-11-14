@@ -140,6 +140,7 @@ def main() -> int:
         "updated_at": datetime.now(KST).isoformat(timespec="seconds"),
         "profile": iso(pf.get("profile") or {}),
         "career": iso(pf.get("career") or []),
+        "career_total": pf.get("career_total") or "",
         "education": iso(pf.get("education") or []),
         "training": iso(pf.get("training") or []),
         "skills": iso(pf.get("skills") or []),
