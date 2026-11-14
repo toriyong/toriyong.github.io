@@ -11,10 +11,12 @@ profile:
   name: 이윤성
   headline: 하이브리드 인프라 아키텍트
   summary: >-
-    온프레미스(IDC)와 퍼블릭 클라우드를 함께 운영하는 하이브리드 환경을 10년 이상 다뤄 왔습니다.
-    서버 가상화와 OS 운영에서 출발해 Azure·OCI 기반의 클라우드 전환과 Kubernetes 운영,
-    그리고 접근제어·취약점 대응 같은 보안 영역까지 범위를 넓혀 왔습니다.
-    장애를 끝까지 파고들어 원인을 찾고, 같은 일이 반복되지 않도록 절차와 문서로 남기는 것을 중요하게 생각합니다.
+    IDC 현장에서 물리 서버와 가상화 인프라를 직접 운영해 온 10년 이상의 경험을 바탕으로,
+    지금은 온프레미스와 퍼블릭 클라우드를 함께 쓰는 하이브리드 환경을 설계하고 운영합니다.
+    랙 단위의 서버 증설과 OS·가상화 운영, 서버 접근제어와 계정 권한 체계,
+    장비 이전과 재구성 같은 현장 작업에서 출발해 Azure·OCI 전환과 Kubernetes 운영까지 범위를 넓혀 왔습니다.
+    클라우드만 아는 사람과 장비만 아는 사람 사이에서 양쪽을 모두 설명할 수 있다는 것이 강점이라고 생각합니다.
+    장애는 끝까지 파고들어 원인을 찾고, 같은 일이 반복되지 않도록 절차와 문서로 남깁니다.
   # 공개 범위에 맞춰 지우거나 채우세요. 이메일은 수집 봇의 표적이 되므로 권장하지 않습니다.
   links:
     - { label: GitHub, url: https://github.com/toriyong }
@@ -26,16 +28,20 @@ education:
     note: 인공지능·소프트웨어 전공
 
 skills:
+  - group: 온프레미스·IDC
+    items: [물리 서버 구축·증설, 장비 이전(IDC 이전), 랙·전원·케이블링, 하드웨어 장애 대응, 유지보수 계약 관리]
+  - group: 가상화·서버
+    items: [VMware vSphere, Windows Server, Active Directory, Linux (Rocky·Ubuntu·RHEL), IBM Power / AIX]
+  - group: 스토리지·백업
+    items: [SAN·NAS 연동, 백업·복구, 이중화 구성]
   - group: 퍼블릭 클라우드
-    items: [Microsoft Azure, Oracle Cloud Infrastructure, Naver Cloud Platform]
+    items: [Microsoft Azure, Oracle Cloud Infrastructure, Naver Cloud Platform, Azure Arc]
   - group: 컨테이너·오케스트레이션
     items: [Kubernetes, AKS, Docker]
-  - group: 가상화·서버
-    items: [VMware vSphere, Windows Server, Active Directory, Linux (Rocky·Ubuntu·RHEL)]
   - group: 네트워크·웹
-    items: [L2/L3 스위칭, 방화벽, 로드밸런서, NGINX, DNS]
+    items: [L2/L3 스위칭, 방화벽, 로드밸런서, NGINX, DNS, VPN]
   - group: 보안
-    items: [Microsoft Defender for Cloud, 서버 접근제어, 취약점 점검, 계정·권한 관리]
+    items: [서버 접근제어, 계정·권한 관리, 취약점 점검·조치, Microsoft Defender for Cloud, 보안 감사 대응]
   - group: 자동화·도구
     items: [PowerShell, Bash, Azure CLI, kubectl, OCI CLI, Git]
 
@@ -56,6 +62,35 @@ certifications:
   - { name: "SC-500 Microsoft Security Operations Analyst", status: preparing, org: Microsoft }
 
 projects:
+  # TODO 가 있는 항목은 연도·규모 같은 사실관계를 채우거나 지우세요.
+  - title: IDC 서버 이전
+    period: "TODO (예: 2021)"
+    role: 사전 조사·이전 계획 수립·현장 수행
+    summary: >-
+      운영 중인 서버를 다른 IDC 로 옮기는 작업을 맡았습니다.
+      장비와 연결 관계를 먼저 조사해 이전 순서와 중단 시간을 정하고,
+      서비스 영향이 가장 적은 시간대에 단계별로 옮긴 뒤 이전 전후 상태를 대조해 검증했습니다.
+      TODO — 대상 장비 수·중단 시간·특이 사항을 적으면 설득력이 올라갑니다.
+    stack: [IDC 이전, 물리 서버, 네트워크 재구성, 사전 조사, 작업계획서]
+
+  - title: 서버 접근제어 체계 구축·운영
+    period: "TODO"
+    role: 설계·구축·운영
+    summary: >-
+      누가 어떤 서버에 어떤 권한으로 접속할 수 있는지를 한곳에서 통제하고,
+      접속과 명령 기록이 남도록 구성했습니다.
+      계정 신청·승인 절차를 정리해 권한이 필요 이상으로 남아 있지 않도록 관리했고,
+      보안 감사에서 요구하는 접속 기록 제출에도 대응했습니다.
+    stack: [서버 접근제어, 계정·권한 관리, 감사 로그, 보안 감사 대응]
+
+  - title: 가상화 기반 서버 통합·증설
+    period: "TODO"
+    role: 설계·구축·운영
+    summary: >-
+      물리 서버로 흩어져 있던 시스템을 VMware 가상화로 통합해 자원 사용률과 관리 부담을 줄였습니다.
+      용량 산정과 이중화 구성을 함께 검토했고, 증설 때마다 같은 기준으로 배치되도록 절차를 정리했습니다.
+    stack: [VMware vSphere, Windows Server, Linux, 이중화, 용량 산정]
+
   - title: AKS 클러스터 버전 업그레이드
     period: 2026
     role: 설계·작업계획 수립·수행
