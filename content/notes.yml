@@ -1,0 +1,19 @@
+# 학습 > 기술 노트. 주제 뼈대와 글 목록.
+#
+# ⚠️ 공개 사이트입니다. 업무·고객사 내용은 올리지 마세요.
+#    OneNote 원본을 그대로 옮기지 말고, 일반 기술 내용으로 다시 써서 올립니다.
+#
+# 글 추가 방법
+#   1) content/notes/<id>.md 파일을 만든다
+#   2) 아래 notes: 에 한 줄 추가한다
+topics:
+  - { id: os,        name: 운영체제,     desc: "Linux, Windows Server, Active Directory, 파일시스템·디스크" }
+  - { id: virt,      name: 가상화,       desc: "VMware vSphere, Proxmox, Hyper-V" }
+  - { id: container, name: 컨테이너·웹,  desc: "Kubernetes, NGINX, 리버스 프록시" }
+  - { id: storage,   name: 스토리지,     desc: "SAN·NAS, 디스크 구성, 장비별 운영" }
+  - { id: backup,    name: 백업·모니터링, desc: "백업 정책과 복구, 모니터링 구성, 정기 점검" }
+  - { id: network,   name: 네트워크·보안, desc: "네트워크 기초, 접근제어, 계정·권한, 취약점 조치" }
+  - { id: cloud,     name: 클라우드,     desc: "Azure, OCI, AWS, 랜딩존, 인증·권한" }
+
+# 예시: - { id: nginx-reverse-proxy, topic: container, title: "NGINX 리버스 프록시 설정 정리", updated: 2026-11-14 }
+notes: []

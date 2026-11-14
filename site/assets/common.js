@@ -106,6 +106,10 @@
       { id: "results", label: "성적표", href: "market/results/" },
       { id: "watchlist", label: "관심종목", href: "market/watchlist/" },
     ],
+    study: [
+      { id: "exam", label: "자격증", href: "study/" },
+      { id: "notes", label: "기술 노트", href: "study/notes/" },
+    ],
   };
   function renderSubnav() {
     const items = SUBNAV[current];
