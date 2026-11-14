@@ -191,6 +191,9 @@ jobs:
           STUDY_PLAN: ${{ secrets.STUDY_PLAN }}
         run: python tools/build_study.py --out site/study/data.json
 
+      - name: Build notes (기술 노트)
+        run: python tools/build_notes.py --out site/study/notes/data.json
+
       - name: Build portfolio (소개)
         env:
           STUDY_PLAN: ${{ secrets.STUDY_PLAN }}

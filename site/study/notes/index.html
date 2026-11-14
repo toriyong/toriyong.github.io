@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>기술 노트 · 학습 · toriyong</title>
+  <script src="../../assets/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-tab="study" data-sub="notes">
+  <main>
+    <div class="wrap">
+      <h1>기술 노트</h1>
+      <p class="lead">현장에서 정리해 온 노트를 주제별로 찾아보는 곳입니다.</p>
+
+      <div class="banner info">
+        준비 중입니다. OneNote 자료를 옮기는 중이며, 업무·고객사 내용이 들어간 노트는 올리지 않습니다.
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>검색</h2>
+          <span class="meta" id="nt-count"></span>
+        </div>
+        <div class="search-row">
+          <input type="search" id="nt-q" class="search-input" placeholder="제목·본문 검색 (초성도 가능)" autocomplete="off" spellcheck="false" aria-label="노트 검색" disabled>
+          <button type="button" id="nt-clear" class="more" disabled>지우기</button>
+        </div>
+        <ul id="nt-results" class="sr-list"></ul>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>주제</h2>
+          <span class="meta">노트가 올라오면 각 주제에서 바로 열립니다</span>
+        </div>
+        <div id="nt-topics"></div>
+      </section>
+    </div>
+  </main>
+  <script src="../../assets/common.js"></script>
+  <script src="notes.js"></script>
+</body>
+</html>
