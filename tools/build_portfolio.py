@@ -143,6 +143,7 @@ def main() -> int:
         "career_total": pf.get("career_total") or "",
         "education": iso(pf.get("education") or []),
         "training": iso(pf.get("training") or []),
+        "notes": iso(pf.get("notes") or {}),
         "skills": iso(pf.get("skills") or []),
         "certifications": certs,
         "projects": iso(pf.get("projects") or []),

@@ -143,6 +143,21 @@ projects:
       같은 구조 위에 자격증 학습 일정 관리와 공시 데이터 수집도 얹어 쓰고 있습니다.
     stack: [GitHub Actions, Python, 정적 웹, RSS·공개 API 수집, KISA·CISA·NVD]
 
+# 직접 정리해 온 기술 노트의 '주제 범위'만 적습니다. 내용·고객사·시스템명은 넣지 않습니다.
+notes:
+  intro: >-
+    현장에서 다룬 것은 그때그때 정리해 두는 편입니다. 10년 동안 쌓인 기술 노트가 약 90개 섹션 분량이고,
+    장애를 겪은 순서와 해결 과정, 설정 값과 근거를 함께 남겨 두어 같은 상황에서 다시 꺼내 씁니다.
+    지금은 이 노트를 검색 가능한 형태로 옮기는 작업을 하고 있습니다.
+  groups:
+    - { name: 운영체제, items: "Linux(Ubuntu·CentOS·Rocky), Windows Server, Active Directory, 패키지·파일시스템·디스크" }
+    - { name: 가상화, items: "VMware vSphere, Proxmox, Hyper-V, VM 운영과 리소스 관리" }
+    - { name: 컨테이너·웹, items: "Kubernetes, NGINX, 리버스 프록시, 빌드·배포 도구" }
+    - { name: 스토리지, items: "Dell EMC, NetApp FAS, IBM DS, HPE MSA, SAN 구성" }
+    - { name: 백업·모니터링, items: "백업 정책과 복구 절차, 모니터링 구성, 정기 점검" }
+    - { name: 네트워크·보안, items: "네트워크 기초, 보안 관리, 원격 접속, 서버 접근제어, 계정·권한" }
+    - { name: 클라우드, items: "Azure, OCI, AWS, AKS, 인증·권한, 랜딩존" }
+
 education:
   - school: 서강대학교 AI·SW대학원 (석사과정)
     period: 2025.09 ~ 2028.02 (재학 중)
