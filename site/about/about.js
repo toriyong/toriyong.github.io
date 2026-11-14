@@ -53,6 +53,16 @@
     h("div", { class: "pf-chips" }, (g.items || []).map(i => h("span", { class: "pf-chip", text: i }))),
   ])));
 
+  // ---------- 기술 노트 (주제 범위만)
+  const nt = d.notes || {};
+  if (!(nt.groups || []).length) $("pf-notes-panel").classList.add("hidden");
+  else $("pf-notes").replaceChildren(
+    nt.intro ? h("p", { class: "pf-notes-intro", text: nt.intro }) : null,
+    h("div", null, (nt.groups || []).map(g => h("div", { class: "pf-skill-row" }, [
+      h("div", { class: "pf-skill-group", text: g.name }),
+      h("div", { class: "meta", text: g.items }),
+    ]))));
+
   // ---------- 자격증
   const certs = d.certifications || [];
   const earned = certs.filter(c => c.status === "earned");

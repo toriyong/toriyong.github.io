@@ -642,3 +642,4 @@ svg.spark.flat polyline { stroke: var(--muted); }
 .pf-job-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-bottom: 6px; }
 .pf-job-title { margin-left: 8px; font-size: 13.5px; color: var(--muted); }
 .pf-job .points li { line-height: 1.7; }
+.pf-notes-intro { margin: 0 0 12px; line-height: 1.8; }
