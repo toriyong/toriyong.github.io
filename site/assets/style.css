@@ -643,3 +643,15 @@ svg.spark.flat polyline { stroke: var(--muted); }
 .pf-job-title { margin-left: 8px; font-size: 13.5px; color: var(--muted); }
 .pf-job .points li { line-height: 1.7; }
 .pf-notes-intro { margin: 0 0 12px; line-height: 1.8; }
+
+/* 기술 노트 본문 */
+.nt-body h2 { margin: 22px 0 8px; font-size: 18px; }
+.nt-body h2:first-child { margin-top: 2px; }
+.nt-body h3 { margin: 18px 0 6px; font-size: 15.5px; }
+.nt-p { margin: 0 0 10px; line-height: 1.8; }
+.nt-body pre { margin: 10px 0; padding: 12px 14px; overflow-x: auto; background: var(--panel-2, rgba(127,127,127,.08)); border: 1px solid var(--line); border-radius: 8px; }
+.nt-body code { font-size: 13px; }
+.nt-body p code { padding: 1px 5px; background: var(--panel-2, rgba(127,127,127,.1)); border-radius: 4px; }
+.nt-table { width: 100%; margin: 10px 0; border-collapse: collapse; font-size: 14px; }
+.nt-table th, .nt-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.nt-table th { color: var(--muted); font-weight: 600; }
