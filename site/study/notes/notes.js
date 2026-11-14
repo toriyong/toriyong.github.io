@@ -117,7 +117,10 @@
   $("nt-topics").replaceChildren(...(topics.length ? topics : [{ id: "", name: "주제가 아직 없습니다", desc: "" }]).map(t => {
     const mine = notes.filter(n => n.topic === t.id);
     return h("div", { class: "pf-skill-row" }, [
-      h("div", { class: "pf-skill-group", text: t.name }),
+      h("div", { class: "pf-skill-group" }, [
+        t.name,
+        mine.length ? h("span", { class: "meta nt-cnt", text: ` ${mine.length}` }) : null,
+      ]),
       h("div", null, [
         t.desc ? h("div", { class: "meta", text: t.desc }) : null,
         mine.length
@@ -128,6 +131,10 @@
   }));
 
   // ---------- 검색
+  const used = topics.filter(t => notes.some(n => n.topic === t.id)).length;
+  const sum = $("nt-topic-count");
+  if (sum) sum.textContent = notes.length ? `주제 ${used}개 · 노트 ${notes.length}편` : "제목을 누르면 노트가 열립니다";
+
   const q = $("nt-q"), list = $("nt-results");
   $("nt-count").textContent = notes.length ? `${notes.length}개 노트` : "노트 없음";
   if (!notes.length) return;
