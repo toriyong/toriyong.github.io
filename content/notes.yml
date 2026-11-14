@@ -24,3 +24,10 @@ notes:
   - { id: aks-node-upgrade,     topic: container, title: "AKS 무중단 버전 업그레이드 절차", updated: 2026-11-14 }
   - { id: backup-restore-drill, topic: backup,    title: "백업 정책 설계와 복구 훈련", updated: 2026-11-14 }
   - { id: cloud-landing-zone,   topic: cloud,     title: "Azure·OCI 랜딩존 설계 기준", updated: 2026-11-14 }
+  - { id: disk-full-triage, topic: os, title: "파일시스템이 가득 찼을 때 진단과 조치", updated: 2026-11-14 }
+  - { id: offline-package-install, topic: os, title: "폐쇄망 패키지 설치와 로컬 저장소 구축", updated: 2026-11-14 }
+  - { id: ad-replication-triage, topic: os, title: "Active Directory 복제 장애 진단", updated: 2026-11-14 }
+  - { id: vsphere-performance, topic: virt, title: "vSphere 성능 문제 진단 — CPU Ready부터", updated: 2026-11-14 }
+  - { id: linux-vuln-remediation, topic: network, title: "리눅스 취약점 조치 실무", updated: 2026-11-14 }
+  - { id: monitoring-threshold, topic: backup, title: "모니터링 지표 설계와 임계치 잡기", updated: 2026-11-14 }
+  - { id: backup-failure-triage, topic: backup, title: "백업 실패 유형별 진단", updated: 2026-11-14 }
