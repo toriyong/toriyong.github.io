@@ -50,6 +50,9 @@
     // ---------- 일정 이벤트
     const LABEL = { written_apply: "필기 접수", written: "필기", written_result: "필기 발표",
       practical_apply: "실기 접수", practical: "실기", final_result: "최종 발표" };
+    // CKA 처럼 상시 응시 시험은 필기/실기 구분이 없다. exams.yml 의 ondemand: true 로 표시한다.
+    const pLabel = e => (e && e.ondemand) ? "응시" : "실기";
+    const labelOf = (e, k) => (e && e.ondemand && k === "practical") ? "응시" : LABEL[k];
     const events = [];   // {date, end, exam, round, kind}
     for (const e of exams) for (const r of e.rounds || []) {
       for (const k of Object.keys(LABEL)) if (r[k]) events.push({ date: first(r[k]), end: last(r[k]), exam: e, round: r, kind: k });
@@ -69,9 +72,9 @@
       if (t.from === "written" && wStart) {
         segs.push({ from: start, to: add(wStart, -1), phases: plan.phases?.written || [], t, stage: "필기" });
         const after = t.r.written_result ? add(t.r.written_result, 0) : add(last(t.r.written), 1);
-        if (pStart) segs.push({ from: after, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: "실기" });
+        if (pStart) segs.push({ from: after, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: pLabel(t.e) });
       } else if (pStart) {
-        segs.push({ from: start, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: "실기" });
+        segs.push({ from: start, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: pLabel(t.e) });
       }
       // 시험 직전 N일(기본 14일)은 기출문제 풀이로 고정하고, 그 앞 기간만 단계 비중대로 나눈다
       const lastSeg = segs[segs.length - 1];
@@ -158,8 +161,8 @@
         h("div", { class: "dday-head" }, [h("strong", { text: `${t.e.name} ${t.r.round}` }),
           t.r.estimated ? h("span", { class: "badge sev-medium", text: "임시" }) : null]),
         h("div", { class: "dday-big", text: dday(examDay(t)) }),
-        h("div", { class: "meta", text: `${t.from === "written" ? "필기" : "실기"} ${fmt.md(examDay(t))}` }),
-        next ? h("div", { class: "dday-next", text: `다음: ${LABEL[next.kind]} ${fmt.period(next.date, next.end)} (${dday(next.date)})` }) : null,
+        h("div", { class: "meta", text: `${t.from === "written" ? "필기" : pLabel(t.e)} ${fmt.md(examDay(t))}` }),
+        next ? h("div", { class: "dday-next", text: `다음: ${labelOf(t.e, next.kind)} ${fmt.period(next.date, next.end)} (${dday(next.date)})` }) : null,
         h("div", { class: "bar" }, h("span", { class: "bar-fill", "data-w": all.length ? Math.round(done / all.length * 100) : 0 })),
         h("div", { class: "meta", text: `공부 진행 ${done}/${all.length}건` }),
       ]);
@@ -174,11 +177,11 @@
       evByDay[ev.date] = (evByDay[ev.date] || []).concat(ev);
       if (ev.end && ev.end !== ev.date) evByDay[ev.end] = (evByDay[ev.end] || []).concat({ ...ev, isEnd: true });
     }
-    const evText = ev => `${ev.exam.name.replace("정보", "").replace("기사", "기")} ${LABEL[ev.kind]}${ev.end !== ev.date ? (ev.isEnd ? " 끝" : " 시작") : ""}`;
+    const evText = ev => `${ev.exam.name.replace("정보", "").replace("기사", "기")} ${labelOf(ev.exam, ev.kind)}${ev.end !== ev.date ? (ev.isEnd ? " 끝" : " 시작") : ""}`;
 
     function cellChildren(key) {
       return [
-        ...(evByDay[key] || []).map(ev => h("span", { class: `ev exam x-${ev.exam.id}`, title: `${ev.exam.name} ${ev.round.round} ${LABEL[ev.kind]}`, text: evText(ev) })),
+        ...(evByDay[key] || []).map(ev => h("span", { class: `ev exam x-${ev.exam.id}`, title: `${ev.exam.name} ${ev.round.round} ${labelOf(ev.exam, ev.kind)}`, text: evText(ev) })),
         ...(tasks[key] || []).map(t => h("span", { class: `task ${t.cls}${isDone(t) ? " done" : ""}` }, [
           h("button", { type: "button", class: "chk", title: "완료 체크", "aria-pressed": String(isDone(t)), "aria-label": `${t.text} 완료 체크`,
             onclick: () => { isDone(t) ? store.del(keyOf(t)) : store.set(keyOf(t), "1"); renderCal(); render2(); },

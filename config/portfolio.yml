@@ -74,7 +74,7 @@ certifications:
   - { name: "NAVER Cloud Platform Certified Associate (NCA)", status: earned, date: 2025-06-01, org: Naver Cloud }
   - { name: "Azure Fundamentals (AZ-900), AI Fundamentals (AI-900)", status: earned, date: 2024-05-01, org: Microsoft }
   - { name: "스토리지 설치 및 구성 (Information Storage and Management)", status: earned, date: 2019-02-01, org: Dell EMC }
-  - { name: "CKA (Certified Kubernetes Administrator)", status: preparing, exam_date: 2026-12-15, org: CNCF / Linux Foundation }
+  - { name: "CKA (Certified Kubernetes Administrator)", status: preparing, exam: cka, round: 2026-11, exam_date: 2026-11-29, org: CNCF / Linux Foundation }
   - { name: "AZ-104 Azure Administrator Associate", status: preparing, org: Microsoft }
   - { name: "PMP (Project Management Professional)", status: preparing, org: PMI }
   - { name: 정보보안기사, status: preparing, exam: eis, round: 2027-1, note: 실기 응시 예정 }
