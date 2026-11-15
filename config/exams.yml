@@ -37,3 +37,13 @@ exams:
       - { round: 2027-3, estimated: true,
           written_apply: [2027-08-30, 2027-09-02], written: [2027-09-10, 2027-10-05], written_result: 2027-10-08,
           practical_apply: [2027-10-18, 2027-10-21], practical: 2027-11-13, final_result: 2027-12-17 }
+
+  - id: cka
+    name: CKA (Certified Kubernetes Administrator)
+    org: CNCF / Linux Foundation
+    url: https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/
+    ondemand: true          # 상시 시험 — 필기/실기 구분이 없어 화면에 '응시'로 표시된다
+    note: 상시 응시(원격 감독). 120분 실습형, 합격 66%, 무료 재응시 1회 포함
+    rounds:
+      # 상시 시험이라 '회차'가 없다. 응시 예정일을 practical 에 넣어 쓴다.
+      - { round: 2026-11, practical: 2026-11-29 }
