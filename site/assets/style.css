@@ -664,3 +664,11 @@ svg.spark.flat polyline { stroke: var(--muted); }
 .nt-fig figcaption { margin-top: 6px; font-size: 13px; color: var(--muted); }
 
 .nt-cnt { margin-left: 6px; font-weight: 400; }
+
+/* 학습 단원 — 내 메모 */
+.memo-ta { width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; line-height: 1.6;
+  color: var(--fg); background: var(--panel-2, rgba(127,127,127,.06));
+  border: 1px solid var(--line); border-radius: 8px; resize: vertical; min-height: 140px; }
+.memo-ta:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.memo-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  justify-content: space-between; margin-top: 8px; }
