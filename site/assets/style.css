@@ -672,3 +672,13 @@ svg.spark.flat polyline { stroke: var(--muted); }
 .memo-ta:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .memo-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
   justify-content: space-between; margin-top: 8px; }
+
+/* 증시 종합 */
+.ov-list li { padding: 7px 0; border-bottom: 1px solid var(--line); }
+.ov-list li:last-child { border-bottom: 0; }
+.ov-list .pill { margin-left: 6px; }
+.delta.up { color: var(--up, #c0392b); }
+.delta.down { color: var(--down, #2d6cdf); }
+.up { color: var(--up, #c0392b); }
+.down { color: var(--down, #2d6cdf); }
+.ov-stats { display: flex; flex-wrap: wrap; gap: 20px; }

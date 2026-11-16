@@ -6,90 +6,53 @@
   <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>증시 · 공모주 · toriyong</title>
+  <title>증시 · 종합 · toriyong</title>
   <script src="../assets/theme.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
 </head>
-<body data-root="../" data-tab="market" data-sub="ipo">
+<body data-root="../" data-tab="market" data-sub="overview">
   <main>
     <div class="wrap">
-      <h1>증시 · 공모주</h1>
-      <p class="lead">공모주 청약 일정과 대응 구간 등급. 등급은 공개된 기준으로 코드가 자동 산정합니다.</p>
-
-      <div id="banner-sample" class="banner info hidden">예시 데이터입니다. 실제 공시 데이터가 수집되면 자동으로 바뀝니다.</div>
-      <div id="banner-stale" class="banner warn hidden"></div>
+      <h1>증시 종합</h1>
+      <p class="lead">주요 지수와 공모주 일정, 관심종목 현황을 한 화면에서 봅니다.</p>
 
       <section class="panel" id="indices-panel">
         <div class="panel-head">
           <h2>주요 지수</h2>
+          <span class="meta" id="indices-meta"></span>
         </div>
         <div id="indices"></div>
       </section>
 
       <section class="panel">
         <div class="panel-head">
-          <h2>요약</h2>
-          <span class="meta" id="updated">기준 시각 –</span>
+          <h2>공모주 일정</h2>
+          <a href="ipo/">전체 보기 →</a>
         </div>
-        <div class="chips" id="summary"></div>
-        <div class="summary-detail hidden" id="summary-detail" aria-live="polite"></div>
-        <p class="meta window-note" id="window-note"></p>
+        <div id="ov-ipo" class="meta">불러오는 중…</div>
       </section>
 
       <section class="panel">
         <div class="panel-head">
-          <h2>청약 · 상장 캘린더</h2>
-          <div class="cal-nav">
-            <button type="button" id="cal-prev" aria-label="이전 달">‹</button>
-            <span class="cal-title" id="cal-title"></span>
-            <button type="button" id="cal-next" aria-label="다음 달">›</button>
-            <button type="button" id="cal-today">오늘</button>
-          </div>
+          <h2>관심종목</h2>
+          <a href="watchlist/">전체 보기 →</a>
         </div>
-        <div class="cal" id="calendar"></div>
-        <ul class="agenda" id="agenda" aria-label="이번 달 일정"></ul>
+        <div id="ov-watch" class="meta">불러오는 중…</div>
       </section>
 
       <section class="panel">
         <div class="panel-head">
-          <h2>공모주 목록</h2>
-          <div class="filters" id="filters"></div>
+          <h2>공모주 성적표</h2>
+          <a href="results/">전체 보기 →</a>
         </div>
-        <div class="table-wrap">
-          <table class="rcards">
-            <thead>
-              <tr>
-                <th>종목</th>
-                <th>등급</th>
-                <th>상태</th>
-                <th>청약일</th>
-                <th class="num">공모가(원)</th>
-                <th>주관사</th>
-                <th class="num">경쟁률</th>
-                <th>청약 판단</th>
-                <th class="num">확약률</th>
-                <th class="num">유통물량</th>
-                <th>공시</th>
-              </tr>
-            </thead>
-            <tbody id="ipo-rows"></tbody>
-          </table>
-        </div>
-        <p class="meta">확정 공모가·경쟁률·확약률·유통물량·구주매출은 DART [발행조건확정] 신고서에서 자동으로 읽습니다. 수요예측 결과가 공시되기 전에는 '판정 보류'로 표시됩니다.</p>
+        <div id="ov-results" class="meta">불러오는 중…</div>
       </section>
 
-      <section class="panel">
-        <h2>등급 기준</h2>
-        <ul class="legend" id="legend"></ul>
-        <h3 class="sub-h">청약 판단 (경쟁률 고정 기준 비교)</h3>
-        <ul class="legend" id="sub-legend"></ul>
-        <p class="meta" id="sub-rule-note"></p>
-      </section>
-
+      <p class="meta">이 사이트는 공개 데이터를 정리해 보여 주는 정보 사이트이며, 투자 권유나 매매 신호가 아닙니다.</p>
     </div>
   </main>
   <script src="../assets/common.js"></script>
   <script src="indices.js"></script>
-  <script src="ipo.js"></script>
+  <script src="overview.js"></script>
 </body>
 </html>

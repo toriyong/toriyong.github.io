@@ -22,7 +22,7 @@
 
   let data;
   try {
-    data = await loadJson("data/ipo.json");
+    data = await loadJson("../data/ipo.json");
   } catch (e) {
     $("summary").replaceChildren(h("span", { class: "meta", text: "아직 수집된 데이터가 없습니다. 첫 배포 후 자동 수집이 끝나면 표시됩니다." }));
     $("ipo-rows").replaceChildren(h("tr", null, h("td", { colspan: 11, class: "empty", text: "데이터 없음" })));
