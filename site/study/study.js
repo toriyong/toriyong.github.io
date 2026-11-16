@@ -40,13 +40,6 @@
     const diff = (a, b) => Math.round((D(a) - D(b)) / 864e5);
     const dday = s => { const n = diff(s, today); return n === 0 ? "D-DAY" : n > 0 ? `D-${n}` : `D+${-n}`; };
 
-    // 임시(추정) 일정 경고
-    const est = exams.flatMap(e => (e.rounds || []).filter(r => r.estimated).map(r => `${e.name} ${r.round}`));
-    if (est.length) {
-      $("banner-est").textContent = `임시 일정: ${est.join(", ")} — 2026년 패턴으로 추정한 날짜입니다. 공고가 나오면 config/exams.yml 을 실제 날짜로 바꿔 주세요.`;
-      $("banner-est").classList.remove("hidden");
-    }
-
     // ---------- 일정 이벤트
     const LABEL = { written_apply: "필기 접수", written: "필기", written_result: "필기 발표",
       practical_apply: "실기 접수", practical: "실기", final_result: "최종 발표" };
