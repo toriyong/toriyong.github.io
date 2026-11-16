@@ -61,13 +61,18 @@
     const start = plan.start || today;
     const segs = [];   // {from, to, phases, exam, round, label}
     for (const t of targets) {
+      // 목표마다 시작일을 따로 줄 수 있다. 아직 시작 전인 시험은 일정표에 나오지 않는다.
+      const tStart = t.start && t.start > start ? t.start : start;
       const wStart = first(t.r.written), pStart = first(t.r.practical);
       if (t.from === "written" && wStart) {
-        segs.push({ from: start, to: add(wStart, -1), phases: plan.phases?.written || [], t, stage: "필기" });
-        const after = t.r.written_result ? add(t.r.written_result, 0) : add(last(t.r.written), 1);
-        if (pStart) segs.push({ from: after, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: pLabel(t.e) });
-      } else if (pStart) {
-        segs.push({ from: start, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: pLabel(t.e) });
+        if (tStart <= add(wStart, -1))
+          segs.push({ from: tStart, to: add(wStart, -1), phases: plan.phases?.written || [], t, stage: "필기" });
+        const after0 = t.r.written_result ? add(t.r.written_result, 0) : add(last(t.r.written), 1);
+        const after = after0 > tStart ? after0 : tStart;
+        if (pStart && after <= add(pStart, -1))
+          segs.push({ from: after, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: pLabel(t.e) });
+      } else if (pStart && tStart <= add(pStart, -1)) {
+        segs.push({ from: tStart, to: add(pStart, -1), phases: plan.phases?.practical || [], t, stage: pLabel(t.e) });
       }
       // 시험 직전 N일(기본 14일)은 기출문제 풀이로 고정하고, 그 앞 기간만 단계 비중대로 나눈다
       const lastSeg = segs[segs.length - 1];
@@ -207,7 +212,8 @@
     }
     function render2() {
       // 진행률만 다시 계산
-      const rows = targets.map(t => {
+      // 아직 시작 전인 시험(오늘까지 과제가 하나도 없는 경우)은 진행률에서 빼 둔다
+      const rows = targets.filter(t => tasksOf(t).some(x => x.id.slice(0, 10) <= today)).map(t => {
         const all = tasksOf(t);
         const past = all.filter(x => x.id.slice(0, 10) <= today);
         const done = all.filter(isDone).length;
