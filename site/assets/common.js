@@ -102,7 +102,8 @@
   // 하위 메뉴: body 의 data-sub 가 있으면 해당 탭의 하위 페이지 메뉴를 헤더 아래에 그린다
   const SUBNAV = {
     market: [
-      { id: "ipo", label: "공모주", href: "market/" },
+      { id: "overview", label: "종합", href: "market/" },
+      { id: "ipo", label: "공모주", href: "market/ipo/" },
       { id: "results", label: "성적표", href: "market/results/" },
       { id: "watchlist", label: "관심종목", href: "market/watchlist/" },
     ],
