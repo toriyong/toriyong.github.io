@@ -8,10 +8,11 @@ rest_days: []                # 쉬는 요일: mon tue wed thu fri sat sun
 weekend_review: true         # 토·일은 그 주 단원 복습(이틀 한 묶음). false 면 주말에도 진도
 
 # 목표 시험: exams.yml 의 id · round, 응시 단계(written=필기부터, practical=실기만)
+# start 를 주면 그날부터 일정표에 나온다. 없으면 위 start 를 따른다.
 targets:
   - { exam: cka, round: 2026-11, from: practical }
-  - { exam: eis, round: 2027-1, from: practical }
-  - { exam: eip, round: 2027-1, from: practical }
+  - { exam: eis, round: 2027-1, from: practical, start: 2026-12-15 }
+  - { exam: eip, round: 2027-1, from: practical, start: 2026-12-15 }
 
 # 단계별 비중(기간 배분) — 합이 1이 아니어도 비율로 나눔
 # CKA 처럼 상시 시험이면서 기간이 짧은 경우를 위한 단계 구성
