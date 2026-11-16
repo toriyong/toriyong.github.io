@@ -1,11 +1,12 @@
 # 보안·인프라 페이지 수집 설정
-# 원칙: 공식 기관 발표를 우선(KISA·금융보안원·CISA), 언론 보도는 신뢰 매체의 대형 사고만 소량.
+# 원칙: 공식 기관 발표를 우선(KISA·CISA), 언론 보도는 신뢰 매체의 대형 사고만 소량.
 # 실패한 출처는 건너뛰고 직전 데이터를 유지합니다. 제목·링크·날짜만 저장합니다(본문 저장 안 함).
 
 days: 7                 # 최근 며칠치 보관
 
 # ---------------------------------------------------------------- 1. 공식 보안 공지
 # 금융보안원(fsec.or.kr)은 GitHub Actions 러너에서 접속이 막혀(연결 타임아웃) 제외했습니다.
+# 구글 뉴스 RSS 는 간헐적으로 503 을 돌려주므로 collect.py 에서 최대 3회 재시도합니다.
 official:
   - { org: KISA,       name: "KISA 보안공지",       type: rss,  url: "https://knvd.krcert.or.kr/rss/security/notice" }
   - { org: CISA,       name: "CISA Advisories",    type: rss,  url: "https://www.cisa.gov/cybersecurity-advisories/all.xml" }

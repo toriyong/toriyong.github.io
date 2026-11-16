@@ -6,7 +6,7 @@
 
   const SEV = { critical: "Critical", high: "High", medium: "Medium", info: "Info" };
   const sevBadge = s => h("span", { class: `badge sev-${s}`, text: SEV[s] || s });
-  const ORG_CLS = { KISA: "org-kisa", 금융보안원: "org-fsi", CISA: "org-cisa" };
+  const ORG_CLS = { KISA: "org-kisa", CISA: "org-cisa" };
   const orgBadge = o => h("span", { class: `org ${ORG_CLS[o] || ""}`, text: o });
   const ext = (href, text, cls) => h("a", { href, target: "_blank", rel: "noopener noreferrer", class: cls, text });
 

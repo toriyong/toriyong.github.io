@@ -4,7 +4,7 @@
       제목·링크·날짜·점수만 저장한다(기사·공지 본문은 저장하지 않음).
 
 수집 항목 (출처별 독립 실행: 한 곳이 실패해도 나머지는 계속, 실패한 항목은 직전 데이터 유지)
-  official   공식 보안 공지 — KISA 보안공지, 금융보안원 보도자료·취약점 정보, CISA Advisories
+  official   공식 보안 공지 — KISA 보안공지, CISA Advisories
   cves       최근 CVE — 국내(KISA KNVD, 한글 제목) / 글로벌(NVD Critical)
   kev        CISA KEV — 실제 악용이 확인된 취약점
   media      주요 사고 보도 — 신뢰 매체만, 같은 사건은 묶어서 보도 매체 수가 많은 순
@@ -62,10 +62,26 @@ def iso(dt: datetime | None) -> str | None:
     return dt.isoformat(timespec="minutes") if dt else None
 
 
-def http_get(url: str, timeout: int = 25, **kw) -> requests.Response:
-    r = requests.get(url, headers={"User-Agent": UA}, timeout=timeout, **kw)
-    r.raise_for_status()
-    return r
+def http_get(url: str, timeout: int = 25, tries: int = 3, **kw) -> requests.Response:
+    """일시적 오류(429·5xx·연결 실패)는 간격을 늘려 가며 재시도한다.
+
+    구글 뉴스 RSS 는 데이터센터 IP 에 간헐적으로 503 을 돌려준다. 한 번 실패했다고
+    출처를 통째로 버리면 '수집 실패' 안내가 뜨므로, 몇 초 쉬고 다시 시도한다.
+    """
+    last = None
+    for attempt in range(tries):
+        try:
+            r = requests.get(url, headers={"User-Agent": UA}, timeout=timeout, **kw)
+            if r.status_code in (429, 500, 502, 503, 504) and attempt < tries - 1:
+                raise requests.HTTPError(f"{r.status_code} {r.reason}", response=r)
+            r.raise_for_status()
+            return r
+        except (requests.RequestException, OSError) as e:
+            last = e
+            if attempt == tries - 1:
+                break
+            time.sleep(2 * (attempt + 1))      # 2초 → 4초
+    raise last
 
 
 def http_post_json(url: str, body: dict, timeout: int = 25) -> dict:
@@ -436,8 +452,8 @@ def sample(cfg: dict) -> dict:
     ago = lambda h: iso(t - timedelta(hours=h))
     clf = Classifier(cfg, {"CVE-2026-00001"})
     off = [("KISA", "KISA 보안공지", "[예시] Apache 제품 보안 업데이트 권고", 3),
-           ("금융보안원", "금융보안원 보도자료", "[예시] 금융보안원, 금융권 대상 피싱 사칭 주의 당부", 20),
-           ("금융보안원", "금융보안원 취약점 정보", "FVE-2026-0001 | [예시] 그룹웨어 임의 파일 업로드 취약점", 30),
+           ("KISA", "KISA 보안공지", "[예시] 그룹웨어 임의 파일 업로드 취약점 보안 업데이트 권고", 20),
+           ("CISA", "CISA Advisories", "[Sample] Known Exploited Vulnerability Added to KEV Catalog", 30),
            ("KISA", "KISA 보안공지", "[예시] VPN 제품 인증 우회 취약점 긴급 보안 업데이트 권고", 50),
            ("CISA", "CISA Advisories", "[Sample] CISA Releases Industrial Control Systems Advisories", 60)]
     official = [{"id": f"o{i}", "title": ti, "link": "https://example.com/", "org": org, "source": src,
