@@ -15,7 +15,15 @@
   }
   const groups = (data.groups || []).filter(g => (g.items || []).length);
   if (!groups.length) {
-    box.replaceChildren(h("p", { class: "meta", text: "표시할 지수가 없습니다." }));
+    // 왜 비었는지 알려 준다. 대부분 무료 API 신청·키 등록이 안 된 경우다.
+    const errs = data.errors || [];
+    const need = [];
+    if (errs.some(e => /DATA_GO_KR|Forbidden|403/.test(e))) need.push("공공데이터포털 '금융위원회_지수시세정보' 활용신청(국내 지수)");
+    if (errs.some(e => /FRED/.test(e))) need.push("FRED API 키 등록(해외 지수·환율)");
+    box.replaceChildren(
+      h("p", { class: "meta", text: need.length ? "지수 데이터를 받지 못했습니다. 아래가 필요합니다." : "표시할 지수가 없습니다." }),
+      need.length ? h("ul", { class: "plain" }, need.map(t => h("li", { class: "meta", text: `· ${t}` }))) : null,
+    );
     return;
   }
 
