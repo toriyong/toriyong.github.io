@@ -4,8 +4,9 @@
   const { h, loadJson } = window.Hub;
   const box = document.getElementById("unit");
   const q = new URLSearchParams(location.search);
-  const NAME = { eis: "정보보안기사 실기", eip: "정보처리기사 실기" };
+  const NAME = { eis: "정보보안기사 실기", eip: "정보처리기사 실기", cka: "CKA" };
   const DONE = "study:unit:";
+  const MEMO = "study:memo:";
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* noop */ } },
@@ -143,6 +144,44 @@
       h("div", { class: "panel-head" }, [h("h2", { text: "연습문제" }), tools()]),
       h("ol", { class: "quiz-list" }, (u.quiz || []).map((z, i) => quizItem(z, i + 1))),
     ]);
+    // ---- 내 메모 (이 브라우저에만 저장된다)
+    const ta = h("textarea", { class: "memo-ta", rows: "8",
+      placeholder: "공부하면서 적어 두세요. 입력하는 대로 이 브라우저에 저장됩니다." });
+    ta.value = store.get(MEMO + u.id) || "";
+    const memoState = h("span", { class: "meta", text: ta.value ? "저장됨" : "" });
+    let timer = null;
+    ta.addEventListener("input", () => {
+      memoState.textContent = "입력 중…";
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        ta.value.trim() ? store.set(MEMO + u.id, ta.value) : store.del(MEMO + u.id);
+        memoState.textContent = ta.value.trim() ? "저장됨" : "";
+      }, 400);
+    });
+    const dlBtn = h("button", { type: "button", class: "more", text: "이 시험 메모 전부 내려받기" });
+    dlBtn.onclick = () => {
+      const lines = [`# ${NAME[u.exam] || u.exam} 메모`, ""];
+      let n = 0;
+      for (const x of list) {
+        const m = store.get(MEMO + x.id);
+        if (!m) continue;
+        n++; lines.push(`## ${x.title}`, "", m.trim(), "");
+      }
+      if (!n) { memoState.textContent = "내려받을 메모가 없습니다"; return; }
+      const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/markdown" }));
+      const a = h("a", { href: url, download: `${u.exam}-memo.md` });
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    const memo = h("section", { class: "panel" }, [
+      h("div", { class: "panel-head" }, [h("h2", { text: "내 메모" }), memoState]),
+      ta,
+      h("div", { class: "memo-foot" }, [
+        h("span", { class: "meta", text: "이 브라우저에만 저장됩니다. 기기를 옮기거나 방문 기록을 지우면 사라지니, 중요한 내용은 내려받아 두세요." }),
+        dlBtn,
+      ]),
+    ]);
+
     const doneBtn = h("button", { type: "button", class: "more" });
     const paint = () => { doneBtn.textContent = done() ? "✔ 이 단원 학습 완료 (취소)" : "이 단원 학습 완료로 표시"; };
     doneBtn.onclick = () => { done() ? store.del(DONE + u.id) : store.set(DONE + u.id, "1"); paint(); };
@@ -151,6 +190,7 @@
       h("p", { class: "meta", text: `${NAME[u.exam] || u.exam} · ${u.idx + 1} / ${list.length} 단원${quizFirst ? " · 문제 풀이 모드" : ""}` }),
       h("h1", { text: u.title }),
       ...(quizFirst ? [quiz, points, notes] : [notes, points, quiz]),
+      memo,
       h("div", { class: "unit-nav" }, [
         prev ? h("a", { href: `?u=${prev.id}`, text: `← ${prev.title}` }) : h("span"),
         doneBtn,
@@ -164,12 +204,12 @@
   document.title = "학습 단원 · toriyong";
   box.replaceChildren(
     h("h1", { text: "학습 단원" }),
-    h("p", { class: "lead", text: "단원을 누르면 핵심 정리와 연습문제가 열립니다." }),
+    h("p", { class: "lead", text: "단원을 누르면 핵심 정리와 연습문제가 열립니다. 각 단원 아래에 메모를 적어 둘 수 있습니다." }),
     ...Object.entries(content).map(([exam, units]) => h("section", { class: "panel" }, [
       h("div", { class: "panel-head" }, [h("h2", { text: NAME[exam] || exam }), h("a", { href: `?e=${exam}&mode=all`, text: "전체 문제 점검 →" })]),
       h("ol", { class: "unit-list" }, units.map(x => h("li", null, [
         h("a", { href: `?u=${x.id}`, text: x.title }),
-        h("span", { class: "meta", text: ` 정리 ${x.points.length} · 문제 ${(x.quiz || []).length}${store.get(DONE + x.id) === "1" ? " · ✔ 완료" : ""}` }),
+        h("span", { class: "meta", text: ` 정리 ${x.points.length} · 문제 ${(x.quiz || []).length}${store.get(MEMO + x.id) ? " · ✎ 메모" : ""}${store.get(DONE + x.id) === "1" ? " · ✔ 완료" : ""}` }),
       ]))),
     ])),
   );
