@@ -36,6 +36,13 @@
     const [d, t] = iso.split("T");
     return `${fmt.md(d)} ${t.slice(0, 5)}`;
   };
+  // 장마감일 때는 '몇 시'가 아니라 그 거래소의 거래일을 보여 준다 (미국은 한국보다 하루 늦음)
+  const closeDay = x => {
+    const pts = x.points || [];
+    const epoch = pts.length ? pts[pts.length - 1][0] : Date.parse(x.time) / 1000;
+    const d = new Date((epoch + (x.tz_offset || 0)) * 1000);
+    return `${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
+  };
   const stateBadge = x => h("span", { class: `idx-state ${x.state === "open" ? "open" : ""}`, text: x.state === "open" ? "장중" : "장마감" });
 
   function svgEl(tag, attrs) {
@@ -93,7 +100,7 @@
     const hiCls = x.prev && x.high > x.prev ? "up" : x.prev && x.high < x.prev ? "down" : "";
     const loCls = x.prev && x.low > x.prev ? "up" : x.prev && x.low < x.prev ? "down" : "";
     return h("article", { class: `idx-main${x.stale ? " stale" : ""}`,
-      title: x.w52h ? `52주 최고 ${n2(x.w52h)} · 52주 최저 ${n2(x.w52l)}` : null }, [
+      title: x.w52h ? `52주 최고 ${n2(x.w52h)} · 52주 최저 ${n2(x.w52l)}` : "52주 범위 정보 없음" }, [
       h("div", { class: "idx-head" }, [h("strong", { text: x.name }), stateBadge(x)]),
       h("div", { class: "idx-now" }, [
         h("span", { class: "idx-big", text: n2(x.value) }),
@@ -127,7 +134,7 @@
       h("div", { class: "idx-section-head" }, [
         h("h3", { text: s.name }),
         h("span", { class: `idx-state ${open ? "open" : ""}`, text: open ? "장중" : "장마감" }),
-        h("span", { class: "meta", text: lead ? `${kstStamp(lead.time)} 기준 (한국 시각)` : "" }),
+        h("span", { class: "meta", text: lead ? (open ? `${kstStamp(lead.time)} 기준 (한국 시각)` : `${closeDay(lead)} 종가 기준 (현지 날짜)`) : "" }),
       ]),
       h("div", { class: `idx-board cols-${(s.main || []).length + ((s.sub || []).length ? 1 : 0)}` }, [
         ...(s.main || []).map(mainCard),

@@ -53,9 +53,9 @@ def test_prev_close_and_52w_from_daily():
     res["meta"].update(regularMarketDayHigh=673.57, regularMarketDayLow=654.8)
     day = 86400
     daily = {
-        "timestamp": [T0 - 2 * day, T0 - day, T0],
-        "indicators": {"quote": [{"close": [640.0, 650.64, 655.71],
-                                  "high": [1229.42, 652.0, 673.57], "low": [618.74, 645.0, 654.8]}]},
+        "timestamp": [T0 - i * day for i in range(249, -1, -1)],
+        "indicators": {"quote": [{"close": [640.0] * 248 + [650.64, 655.71],
+                                  "high": [1229.42] + [652.0] * 248 + [673.57], "low": [618.74] + [645.0] * 248 + [654.8]}]},
     }
     it = indices.parse_chart(res, "^KQ11", "코스닥", 1, False, now=T0 + 23400 + 3 * 3600, daily=daily)
     assert it["prev"] == 650.64
@@ -70,3 +70,14 @@ def test_closed_time_clamped_to_market_end():
     res["meta"]["chartPreviousClose"] = 4697.51
     it = indices.parse_chart(res, "^KS11", "코스피", 1, False, now=T0 + 23400 + 5 * 3600)
     assert it["time"].startswith("2026-11-26T15:30")
+
+
+def test_short_history_has_no_52w():
+    """코스피200처럼 일봉 이력이 짧고 meta 52주 값이 당일 고저와 같으면 52주 범위를 비운다."""
+    res = chart(727.08, None, [744.86, 725.98, 727.08])
+    res["meta"].update(regularMarketDayHigh=744.86, regularMarketDayLow=725.98,
+                       fiftyTwoWeekHigh=744.86, fiftyTwoWeekLow=725.98)
+    daily = {"timestamp": [T0 - 86400, T0],
+             "indicators": {"quote": [{"close": [723.81, 727.08], "high": [730, 744.86], "low": [720, 725.98]}]}}
+    it = indices.parse_chart(res, "^KS200", "코스피 200", 1, False, now=T0 + 30000, daily=daily)
+    assert it["prev"] == 723.81 and it["w52h"] is None and it["w52l"] is None

@@ -105,6 +105,8 @@ def daily_stats(daily: dict | None, session_ts: int, gmtoffset: int) -> tuple[fl
     today = day(session_ts)
     before = [r for r in rows if day(r[0]) < today]
     prev = before[-1][1] if before else None
+    if len(rows) < 200:                    # 1년치(약 250일)가 안 되면 52주 범위로 쓰지 않는다 (코스피200 등)
+        return prev, None, None
     return prev, max(r[2] for r in rows), min(r[3] for r in rows)
 
 
@@ -148,6 +150,9 @@ def parse_chart(res: dict, sym: str, name: str, scale: float, with_points: bool,
         mt = int(end)                                  # 장마감 후 갱신 시각이 아니라 마감 시각으로 표시
 
     w52h, w52l = sc("fiftyTwoWeekHigh"), sc("fiftyTwoWeekLow")
+    if w52h is not None and high is not None and w52l is not None and low is not None \
+            and abs(w52h - high) < 1e-6 and abs(w52l - low) < 1e-6:
+        w52h = w52l = None                 # 당일 고저가 그대로 온 경우 = 52주 정보 없음
     if d_hi is not None:
         w52h = max(d_hi * scale, high if high is not None else d_hi * scale)
         w52l = min(d_lo * scale, low if low is not None else d_lo * scale)
