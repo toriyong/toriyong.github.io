@@ -5,7 +5,6 @@
   const { h, fmt, loadJson } = window.Hub;
   const box = document.getElementById("indices");
   if (!box) return;
-  const meta = document.getElementById("indices-meta");
   const NS = "http://www.w3.org/2000/svg";
 
   let data;
@@ -54,7 +53,7 @@
     if (x.prev !== null && x.prev !== undefined) { lo = Math.min(lo, x.prev); hi = Math.max(hi, x.prev); }
     const pad = (hi - lo) * 0.08 || 1;
     lo -= pad; hi += pad;
-    const W = 300, H = 90;
+    const W = 300, H = 52;
     const t0 = pts[0][0], t1 = pts[pts.length - 1][0], span = t1 - t0 || 1;
     const X = t => ((t - t0) / span * W).toFixed(1);
     const Y = v => (H - (v - lo) / (hi - lo) * H).toFixed(1);
@@ -85,14 +84,16 @@
     ]);
   }
 
+  // 이름 위·값 아래로 쌓아 3열에 넣는다 (카드 높이를 줄이기 위해)
   const stat = (label, v, cls) => h("div", { class: "idx-stat" }, [
-    h("span", { class: "meta", text: label }), h("span", { class: cls || null, text: n2(v) }),
+    h("span", { class: "meta", text: label }), h("b", { class: cls || null, text: n2(v) }),
   ]);
 
   function mainCard(x) {
     const hiCls = x.prev && x.high > x.prev ? "up" : x.prev && x.high < x.prev ? "down" : "";
     const loCls = x.prev && x.low > x.prev ? "up" : x.prev && x.low < x.prev ? "down" : "";
-    return h("article", { class: `idx-main${x.stale ? " stale" : ""}` }, [
+    return h("article", { class: `idx-main${x.stale ? " stale" : ""}`,
+      title: x.w52h ? `52주 최고 ${n2(x.w52h)} · 52주 최저 ${n2(x.w52l)}` : null }, [
       h("div", { class: "idx-head" }, [h("strong", { text: x.name }), stateBadge(x)]),
       h("div", { class: "idx-now" }, [
         h("span", { class: "idx-big", text: n2(x.value) }),
@@ -101,18 +102,21 @@
       chart(x),
       h("div", { class: "idx-stats" }, [
         stat("전일", x.prev), stat("고가", x.high, hiCls), stat("저가", x.low, loCls),
-        stat("52주 최고", x.w52h), stat("52주 최저", x.w52l),
-        h("div", { class: "idx-stat" }, [h("span", { class: "meta", text: "기준" }), h("span", { class: "meta", text: kstStamp(x.time) })]),
       ]),
     ]);
   }
 
   function subTile(x) {
-    return h("div", { class: `idx-tile${x.stale ? " stale" : ""}` }, [
+    // 값과 등락을 한 줄에 둬서 높이를 줄인다. 52주 범위는 마우스를 올리면 보인다.
+    const tip = [x.diff !== null && x.diff !== undefined ? `전일 대비 ${change(x)}` : null,
+      x.w52h ? `52주 최고 ${n2(x.w52h)} · 최저 ${n2(x.w52l)}` : null].filter(Boolean).join("\n");
+    const rateOnly = x.rate === null || x.rate === undefined ? "–" : `${arrow(x)} ${x.rate > 0 ? "+" : ""}${n2(x.rate)}%`;
+    return h("div", { class: `idx-tile${x.stale ? " stale" : ""}`, title: tip || null }, [
       h("div", { class: "idx-head" }, [h("span", { text: x.name }), h("i", { class: `dot ${x.state === "open" ? "open" : ""}`, title: x.state === "open" ? "거래 중" : "장마감" })]),
-      h("div", { class: "idx-tval", text: n2(x.value) }),
-      h("div", { class: `idx-tchg ${dir(x)}`, text: change(x) }),
-      h("div", { class: "meta idx-t52", text: x.w52h ? `52주 최고 ${n2(x.w52h)}` : "" }),
+      h("div", { class: "idx-tline" }, [
+        h("span", { class: "idx-tval", text: n2(x.value) }),
+        h("span", { class: `idx-tchg ${dir(x)}`, text: rateOnly }),
+      ]),
     ]);
   }
 
@@ -136,6 +140,6 @@
   box.replaceChildren(...rows,
     h("p", { class: "meta idx-foot", text:
       `출처 ${data.source || "Yahoo Finance"} · 국내 시세는 약 20분 지연될 수 있음 · ${fmt.stamp(data.updated_at)} 수집` +
+      " · 카드에 마우스를 올리면 52주 최고·최저" +
       (stale ? " · 흐리게 표시된 항목은 이번 수집에 실패해 직전 값을 보여 줍니다" : "") }));
-  if (meta) meta.textContent = "";
 })();
