@@ -65,14 +65,15 @@ def r2(v):
     return None if v is None else round(v, 2)
 
 
-def fetch_chart(session: requests.Session, sym: str, timeout: int) -> dict:
-    """Yahoo 차트 API (당일 5분봉). 호스트 두 곳을 번갈아 최대 3번 시도."""
+def fetch_chart(session: requests.Session, sym: str, timeout: int,
+                rng: str = "1d", interval: str = "5m") -> dict:
+    """Yahoo 차트 API. 기본은 당일 5분봉. 호스트 두 곳을 번갈아 최대 3번 시도."""
     last = None
     for attempt in range(3):
         host = HOSTS[attempt % len(HOSTS)]
         try:
             r = session.get(f"{host}/v8/finance/chart/{quote(sym)}", timeout=timeout,
-                            params={"range": "1d", "interval": "5m", "includePrePost": "false"})
+                            params={"range": rng, "interval": interval, "includePrePost": "false"})
             if r.status_code == 429:
                 raise RuntimeError("429 요청 과다")
             r.raise_for_status()
@@ -86,7 +87,29 @@ def fetch_chart(session: requests.Session, sym: str, timeout: int) -> dict:
     raise RuntimeError(f"{sym}: {last}")
 
 
-def parse_chart(res: dict, sym: str, name: str, scale: float, with_points: bool, now: float) -> dict:
+def daily_stats(daily: dict | None, session_ts: int, gmtoffset: int) -> tuple[float | None, float | None, float | None]:
+    """1년 일봉 → (전일 종가, 52주 최고, 52주 최저).
+    meta 의 previousClose·fiftyTwoWeekHigh 는 일부 지수(코스닥·코스피200)에서 틀리게 오므로 일봉으로 직접 계산한다."""
+    if not daily:
+        return None, None, None
+    q = (((daily.get("indicators") or {}).get("quote") or [{}])[0])
+    rows = []
+    for t, c, hi, lo in zip(daily.get("timestamp") or [], q.get("close") or [],
+                            q.get("high") or [], q.get("low") or []):
+        c = fnum(c)
+        if c is not None:
+            rows.append((int(t), c, fnum(hi) or c, fnum(lo) or c))
+    if not rows:
+        return None, None, None
+    day = lambda t: (t + gmtoffset) // 86400       # 거래소 현지 날짜
+    today = day(session_ts)
+    before = [r for r in rows if day(r[0]) < today]
+    prev = before[-1][1] if before else None
+    return prev, max(r[2] for r in rows), min(r[3] for r in rows)
+
+
+def parse_chart(res: dict, sym: str, name: str, scale: float, with_points: bool, now: float,
+                daily: dict | None = None) -> dict:
     """차트 응답 → 카드 한 장. 전일 종가 대비 등락을 계산한다."""
     meta = res.get("meta") or {}
     ts = res.get("timestamp") or []
@@ -98,9 +121,14 @@ def parse_chart(res: dict, sym: str, name: str, scale: float, with_points: bool,
     price = price * scale if price is not None else (pts[-1][1] if pts else None)
     if price is None:
         raise RuntimeError(f"{sym}: 현재가 없음")
-    prev = fnum(meta.get("previousClose"))
+    mt = int(meta.get("regularMarketTime") or (pts[-1][0] if pts else now))
+    off = int(meta.get("gmtoffset") or 0)
+    d_prev, d_hi, d_lo = daily_stats(daily, pts[-1][0] if pts else mt, off)
+    prev = d_prev
     if prev is None:
         prev = fnum(meta.get("chartPreviousClose"))
+    if prev is None:
+        prev = fnum(meta.get("previousClose"))
     prev = prev * scale if prev is not None else None
 
     def sc(k):
@@ -113,10 +141,16 @@ def parse_chart(res: dict, sym: str, name: str, scale: float, with_points: bool,
         high = max(vals + ([high] if high is not None else []))
         low = min(vals + ([low] if low is not None else []))
 
-    mt = int(meta.get("regularMarketTime") or (pts[-1][0] if pts else now))
     reg = ((meta.get("currentTradingPeriod") or {}).get("regular")) or {}
     start, end = reg.get("start"), reg.get("end")
     state = "open" if start and end and start <= now <= end and now - mt < 3600 else "closed"
+    if state == "closed" and end and start and start <= mt and mt > end:
+        mt = int(end)                                  # 장마감 후 갱신 시각이 아니라 마감 시각으로 표시
+
+    w52h, w52l = sc("fiftyTwoWeekHigh"), sc("fiftyTwoWeekLow")
+    if d_hi is not None:
+        w52h = max(d_hi * scale, high if high is not None else d_hi * scale)
+        w52l = min(d_lo * scale, low if low is not None else d_lo * scale)
 
     item = {
         "sym": sym, "name": name,
@@ -125,10 +159,10 @@ def parse_chart(res: dict, sym: str, name: str, scale: float, with_points: bool,
         "diff": r2(price - prev) if prev is not None else None,
         "rate": r2((price / prev - 1) * 100) if prev else None,
         "high": r2(high), "low": r2(low),
-        "w52h": r2(sc("fiftyTwoWeekHigh")), "w52l": r2(sc("fiftyTwoWeekLow")),
+        "w52h": r2(w52h), "w52l": r2(w52l),
         "time": datetime.fromtimestamp(mt, KST).isoformat(timespec="minutes"),
         "state": state,
-        "tz_offset": int(meta.get("gmtoffset") or 0),
+        "tz_offset": off,
     }
     if with_points:
         item["points"] = [[t, round(c, 2)] for t, c in pts]
@@ -206,7 +240,13 @@ def main() -> int:
                     ok += 1
                     continue
                 try:
-                    item = parse_chart(fetch_chart(s, sym, args.timeout), sym, name, scale, part == "main", now)
+                    intraday = fetch_chart(s, sym, args.timeout)
+                    try:
+                        daily = fetch_chart(s, sym, args.timeout, "1y", "1d")
+                    except Exception as e:
+                        errors.append(f"{sym} 일봉: {str(e)[:100]}")
+                        daily = None
+                    item = parse_chart(intraday, sym, name, scale, part == "main", now, daily)
                     ok += 1
                 except Exception as e:
                     errors.append(str(e)[:160])
