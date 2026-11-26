@@ -131,7 +131,7 @@
     if (body.dataset.nav === "none") return;
     const footer = h("footer", { class: "site-footer" }, h("div", { class: "wrap" }, [
       h("p", { text: "이 사이트는 공개 데이터를 정리해 보여 주는 정보 사이트이며, 투자 권유나 매매 추천을 하지 않습니다. 투자 판단과 책임은 본인에게 있습니다." }),
-      h("p", { text: "데이터 출처: 금융감독원 OpenDART, 한국거래소 KIND, 금융위원회 주식시세정보(공공데이터포털), CISA KEV, endoflife.date, 각 언론사·기관 RSS(제목과 링크만 표시). 원문을 반드시 확인하세요." }),
+      h("p", { text: "데이터 출처: 금융감독원 OpenDART, 한국거래소 KIND, 금융위원회 주식시세정보(공공데이터포털), Yahoo Finance(주요 지수·환율·원자재), CISA KEV, endoflife.date, 각 언론사·기관 RSS(제목과 링크만 표시). 원문을 반드시 확인하세요." }),
     ]));
     body.append(footer);
   }
